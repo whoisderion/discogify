@@ -11,8 +11,8 @@ export const SpotifyContextProvider = ({ children }) => {
 
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
     const slug = {
-        favorite_tracks: '/spotify/favorite/tracks?limit=9',
-        favorite_artists: '/spotify/favorite/artists?limit=4'
+        favorite_tracks: '/spotify/favorite/tracks?limit=50',
+        favorite_artists: '/spotify/favorite/artists?limit=50'
     }
 
     function findToken() {
@@ -36,7 +36,7 @@ export const SpotifyContextProvider = ({ children }) => {
         })
             .then(response => {
                 var response_arr = []
-                if (dataType = 'favorite_tracks') {
+                if (dataType == 'favorite_tracks') {
                     response.data.items.forEach(item => {
                         const favorite_obj = {
                             name: item.name,
@@ -48,8 +48,22 @@ export const SpotifyContextProvider = ({ children }) => {
                     })
                     console.log(response_arr)
                     setFavoriteTracks(response_arr)
-
+                    localStorage.setItem('favoriteSongs', JSON.stringify(response_arr))
                     return favoriteTracks
+                }
+                if (dataType == 'favorite_artists') {
+                    response.data.items.forEach(item => {
+                        const favorite_obj = {
+                            name: item.name,
+                            image: item.images[0].url,
+                            id: item.id
+                        }
+                        response_arr = [...response_arr, favorite_obj]
+                    })
+                    console.log(response_arr)
+                    // setFavoriteTracks(response_arr)
+                    localStorage.setItem('favoriteArtists', JSON.stringify(response_arr))
+                    // return favoriteTracks
                 }
             })
     }
@@ -69,7 +83,6 @@ export const SpotifyContextProvider = ({ children }) => {
 
     useEffect(() => {
         findToken()
-
     }, [])
 
     return (

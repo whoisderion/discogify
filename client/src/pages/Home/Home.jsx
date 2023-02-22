@@ -1,15 +1,18 @@
 import React from "react";
+import { useState } from "react";
 import Carousel from "components/ui/Carousel/Carousel";
 import * as ROUTES from 'data/constants/routes'
 
 const Home = () => {
+    const [favoritesToggle, setFavoritesToggle] = useState("favorite_tracks")
     return (
         <div className="Home">
             <h1>Welcome back to Discogify!</h1>
             <Carousel
                 title={"Recent Favorites"}
                 route={ROUTES.RECENT_FAVORITES}
-                type={"favorite_tracks"}
+                type={favoritesToggle}
+                setType={setFavoritesToggle}
             />
             {/* <Carousel
                 title="Upcoming Releases"

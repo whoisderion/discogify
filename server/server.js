@@ -31,7 +31,7 @@ app.get('/spotify/login', (req, res) => {
             response_type: 'code',
             client_id: process.env.SPOTIFY_CLIENT_ID,
             scope: SCOPE,
-            redirect_uri: SPOTIFY_REDIRECT_URI
+            redirect_uri: process.env.SPOTIFY_REDIRECT_URI
         }))
 })
 
@@ -40,7 +40,7 @@ app.get('/spotify/callback', (req, res) => {
 
     const usp = new URLSearchParams({
         code: code,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
         grant_type: "authorization_code",
     });
 
@@ -276,7 +276,7 @@ function authenticateAccessToken(req, res, next) {
         if (err) return res.sendStatus(403)
         req.token = token
         console.log(currentTime - token.iat)
-        if ((currentTime - token.iat) > 10) {
+        if ((currentTime - token.iat) > 3300) {
             console.log('expired')
             //axios.get('/spotify/refresh-token')
         }

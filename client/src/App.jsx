@@ -28,7 +28,7 @@ function App() {
               <Route
                 path={ROUTES.HOME}
                 element={
-                  <div className="App">
+                  <div>
                     <Home />
                   </div>}
               />
