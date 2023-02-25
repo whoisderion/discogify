@@ -8,6 +8,7 @@ import Home from 'pages/Home';
 import Signup from "pages/Signup";
 import Signin from "pages/Signin";
 import Account from "pages/Account";
+import Favorites from "pages/Favorites";
 import ProtectedRoute from "components/ProtectedRoute";
 import NavigationBar from 'components/NavigationBar';
 
@@ -59,7 +60,7 @@ function App() {
               />
               <Route
                 path={ROUTES.RECENT_FAVORITES}
-                element={<h1>Here are your recent favorites!</h1>}
+                element={<Favorites />}
               />
               <Route
                 path={ROUTES.RECENT_RELEASES}
