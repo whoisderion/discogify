@@ -6,7 +6,9 @@ const { response } = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
-const cors = require('cors')
+const cors = require('cors');
+const { jsonp } = require('express/lib/response');
+const Discogs = require('disconnect').Client
 
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
@@ -17,6 +19,7 @@ const corsOptions = {
     credentials: true,
 }
 
+app.set('json spaces', 4)
 app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
@@ -262,6 +265,134 @@ app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
             }
         })
 })
+
+const discogsUserAgent = "Discogify/0.1 +http://discogify.com"
+const discogsClient = new Discogs(discogsUserAgent, {
+    consumerKey: process.env.DISCOGS_KEY,
+    consumerSecret: process.env.DISCOGS_SECRET
+})
+var oauth = {}
+const discogsDB = discogsClient.database()
+const discogsMarket = discogsClient.marketplace()
+
+app.get('/discogs/test', (req, res) => {
+    db.getRelease(176126, function (err, data) {
+        res.send(data)
+    })
+})
+
+app.get('/discogs/authorize', (req, res) => {
+    var oAuth = discogsClient.oauth()
+    oAuth.getRequestToken(
+        process.env.DISCOGS_KEY,
+        process.env.DISCOGS_SECRET,
+        'http://127.0.0.1:4444/discogs/callback',
+        (err, requestData) => {
+            res.cookie('requestData', requestData)
+            res.redirect(requestData.authorizeUrl);
+        }
+    )
+})
+
+app.get('/discogs/callback', (req, res) => {
+    const requestData = req.cookies.requestData
+    var oAuth = new Discogs(requestData).oauth();
+    oAuth.getAccessToken(
+        req.query.oauth_verifier, // Verification code sent back by Discogs
+        function (err, accessData) {
+            oauth = new Discogs(accessData)
+            res.cookie('accessData', accessData)
+            res.send('Received access token!');
+        }
+    );
+})
+
+app.get('/discogs/identity', function (req, res) {
+    var accessData = req.cookies.accessData
+    var dis = new Discogs(accessData);
+    dis.getIdentity(function (err, data) {
+        res.send(JSON.stringify(data));
+    });
+});
+
+// test url
+// http://127.0.0.1:4444/discogs/search?artist=unknown-mortal-orchestra&album=multi-love&track=puzzles
+app.get('/discogs/search*', (req, res) => {
+    var artistName = '';
+    var albumName = '';
+    var trackName = '';
+
+    if (req.query.artist) {
+        artistName = req.query.artist
+    }
+    if (req.query.album) {
+        albumName = req.query.album
+    }
+    if (req.query.track) {
+        trackName = req.query.track
+    }
+
+    const vinylObj = {
+        artist: artistName,
+        release_title: albumName,
+        track: trackName,
+        format: 'vinyl'
+    }
+
+    discogsDB.search(vinylObj)
+        .then(async (searchList) => {
+            var listingInfo = []
+
+            const searchResults = searchList["results"]
+            for (const album of searchResults) {
+                const data = getDataFromAlbumResult(album)
+                const extraData = await fetchAdditionResources(data['resourceUrl'])
+                listingInfo.push({ ...data, ...extraData })
+            }
+
+            res.send(listingInfo)
+        })
+})
+
+function getDataFromAlbumResult(album) {
+    const id = album['id']
+    const masterUrl = album['master_url']
+    const uri = album['uri']
+    const descriptions = album['formats'][0]
+    const resourceUrl = album['resource_url']
+    const marketplaceLink = `https://www.discogs.com/sell/release/${id}?ev=rb`
+
+    // marketplaceLink to be used to obtain high price for each vinyl type 
+
+    let albumData = {
+        id: id,
+        masterUrl: masterUrl,
+        uri: uri,
+        descriptions: descriptions,
+        resourceUrl: resourceUrl,
+        marketplaceLink: marketplaceLink
+    }
+
+    return albumData
+}
+
+async function fetchAdditionResources(url) {
+    try {
+        const response = await axios.get(url);
+        const resObj = {
+            dateReleased: response.data['released'],
+            dateAdded: response.data['date_added'],
+            lowestPrice: response.data['lowest_price'],
+            numForSale: response.data['num_for_sale'],
+            additionalInfo: response.data['notes'],
+        };
+        return resObj;
+    } catch (err) {
+        console.log(err);
+        return {};
+    }
+}
+
 
 app.get('/test', authenticateAccessToken, (req, res) => {
     res.sendStatus(200)
