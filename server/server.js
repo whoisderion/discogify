@@ -343,7 +343,7 @@ app.get('/discogs/search*', (req, res) => {
         .then(async (searchList) => {
             var listingInfo = []
 
-            const searchResults = searchList["results"]
+            const searchResults = filterAlbumResults(searchList["results"])
             for (const album of searchResults) {
                 const data = getDataFromAlbumResult(album)
                 const extraData = await fetchAdditionResources(data['resourceUrl'])
@@ -388,11 +388,20 @@ async function fetchAdditionResources(url) {
         };
         return resObj;
     } catch (err) {
-        console.log(err);
+        // console.log(err);
         return {};
     }
 }
 
+function filterAlbumResults(results) {
+    let filteredResults = []
+    for (const album of results) {
+        if (album['master_url'] != null) {
+            filteredResults.push(album)
+        }
+    }
+    return filteredResults
+}
 
 app.get('/test', authenticateAccessToken, (req, res) => {
     res.sendStatus(200)
