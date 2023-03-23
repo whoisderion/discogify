@@ -41,8 +41,9 @@ export const SpotifyContextProvider = ({ children }) => {
                         const favorite_obj = {
                             name: item.name,
                             artist: item.artists[0].name,
-                            image: item.album.images[0].url,
-                            id: item.id
+                            image: item.album.images[1].url,
+                            id: item.id,
+                            album: item.album.name,
                         }
                         response_arr = [...response_arr, favorite_obj]
                     })
@@ -55,7 +56,7 @@ export const SpotifyContextProvider = ({ children }) => {
                     response.data.items.forEach(item => {
                         const favorite_obj = {
                             name: item.name,
-                            image: item.images[0].url,
+                            image: item.images[1].url,
                             id: item.id
                         }
                         response_arr = [...response_arr, favorite_obj]
