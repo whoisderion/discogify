@@ -38,6 +38,16 @@ app.get('/spotify/login', (req, res) => {
         }))
 })
 
+app.get('/spotify/testlogin', (req, res) => {
+    res.redirect('https://accounts.spotify.com/authorize?' +
+        querystring.stringify({
+            response_type: 'code',
+            client_id: process.env.SPOTIFY_CLIENT_ID,
+            scope: SCOPE,
+            redirect_uri: process.env.SPOTIFY_REDIRECT_URI
+        }))
+})
+
 app.get('/spotify/callback', (req, res) => {
     const code = req.query.code || null;
 
