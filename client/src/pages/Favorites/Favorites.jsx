@@ -35,7 +35,7 @@ const Favorites = () => {
     }
 
     const arr = showRows()
-    console.log(arr)
+    //console.log(arr)
 
     return (
         <div>
@@ -49,14 +49,14 @@ const Favorites = () => {
             {/* {showItems(types[view], 6)} */}
             {/* {showRows()} */}
             <Row type={types[view]} index={0} rowLength={rowLength} />
-            <Row type={types[view]} index={5} rowLength={rowLength} />
-            <Row type={types[view]} index={11} rowLength={rowLength} />
-            <Row type={types[view]} index={17} rowLength={rowLength} />
-            <Row type={types[view]} index={23} rowLength={rowLength} />
-            <Row type={types[view]} index={29} rowLength={rowLength} />
-            <Row type={types[view]} index={35} rowLength={rowLength} />
-            <Row type={types[view]} index={41} rowLength={rowLength} />
-            <Row type={types[view]} index={47} rowLength={rowLength} />
+            <Row type={types[view]} index={6} rowLength={rowLength} />
+            <Row type={types[view]} index={12} rowLength={rowLength} />
+            <Row type={types[view]} index={18} rowLength={rowLength} />
+            <Row type={types[view]} index={24} rowLength={rowLength} />
+            <Row type={types[view]} index={30} rowLength={rowLength} />
+            <Row type={types[view]} index={36} rowLength={rowLength} />
+            <Row type={types[view]} index={42} rowLength={rowLength} />
+            <Row type={types[view]} index={48} rowLength={rowLength} />
         </div>
     )
 }
