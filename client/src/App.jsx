@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useParams, useSearchParams } from "react-router-dom";
 import * as ROUTES from 'data/constants/routes';
 
 import { UserAuth } from "context/AuthContext";
@@ -9,6 +9,7 @@ import Signup from "pages/Signup";
 import Signin from "pages/Signin";
 import Account from "pages/Account";
 import Favorites from "pages/Favorites";
+import { Artist, Album } from 'pages/Catalog'
 import ProtectedRoute from "components/ProtectedRoute";
 import NavigationBar from 'components/NavigationBar';
 
@@ -28,10 +29,7 @@ function App() {
             <Routes>
               <Route
                 path={ROUTES.HOME}
-                element={
-                  <div>
-                    <Home />
-                  </div>}
+                element={<div><Home /></div>}
               />
               <Route
                 path={ROUTES.LANDING}
@@ -69,6 +67,14 @@ function App() {
               <Route
                 path={ROUTES.UPCOMING_RELEASES}
                 element={<h1>Upcoming Releases</h1>}
+              />
+              <Route
+                path='/catalog/:artist/'
+                element={<Artist />}
+              />
+              <Route
+                path='/catalog/:artist/:album'
+                element={<Album />}
               />
             </Routes>
           </div>
