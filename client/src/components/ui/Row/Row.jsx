@@ -6,12 +6,13 @@ const Row = ({ type, index, rowLength }) => {
         return (
             < div className={`${type.name}-layout`}>
                 {
-                    type.store.slice(index, (index + rowLength)).map((item) => (
-                        <Link to={`/catalog/${encodeURIComponent(String(item.artist).replace(/\s+/g, '-'))}/${encodeURIComponent(String(item.album).replace(/\s+/g, '-'))}`}>
-                            <div className={`${item.name}`} key={item.id}>
+                    type.store.slice(index, (index + rowLength)).map((item, itemIndex) => (
+                        <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.artist).replace(/\s+/g, '-'))}/${encodeURIComponent(String(item.album).replace(/\s+/g, '-'))}?track=${item.name}`}>
+                            <div className={`${item.name}`}>
                                 <div className={`${type.name}-image`}>
                                     <img src={item.image} />
                                 </div>
+                                {/* <p>{index + itemIndex}</p> */}
                                 <p>{item.name}</p>
                                 {item.artist && <p>{item.artist}</p>}
                             </div>
@@ -25,8 +26,8 @@ const Row = ({ type, index, rowLength }) => {
             < div className={`${type.name}-layout`}>
                 {
                     type.store.slice(index, (index + rowLength)).map((item) => (
-                        <Link to={`/catalog/${encodeURIComponent(String(item.name).replace(/\s+/g, '-'))}`}>
-                            <div className={`${item.name}`} key={item.id}>
+                        <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.name).replace(/\s+/g, '-'))}`}>
+                            <div className={`${item.name}`}>
                                 <div className={`${type.name}-image`}>
                                     <img src={item.image} />
                                 </div>
