@@ -25,7 +25,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.get('/', (req, res) => {
-    res.send('INDEX')
+    res.send('Discogify Index')
 })
 
 app.get('/spotify/login', (req, res) => {
@@ -368,11 +368,20 @@ function getDataFromAlbumResult(album) {
     const id = album['id']
     const masterUrl = album['master_url']
     const uri = album['uri']
-    const descriptions = album['formats'][0]
+    const descriptions = { descriptions: 'No Data' }
     const resourceUrl = album['resource_url']
     const marketplaceLink = `https://www.discogs.com/sell/release/${id}?ev=rb`
 
     // marketplaceLink to be used to obtain high price for each vinyl type 
+
+
+    try {
+        if (album['formats'][0]) {
+            const descriptions = album['formats'][0]
+        }
+    } catch (e) {
+        console.log(e.message)
+    }
 
     let albumData = {
         id: id,
