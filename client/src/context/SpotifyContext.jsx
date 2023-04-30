@@ -5,6 +5,7 @@ import * as ROUTES from 'data/constants/routes'
 const SpotifyContext = createContext()
 
 export const SpotifyContextProvider = ({ children }) => {
+    const [isReady, setIsReady] = useState(false);
     const [tokenExists, setTokenExists] = useState(false)
     const [profile, setProfile] = useState(null)
     const [favoriteTracks, setFavoriteTracks] = useState([])
@@ -25,11 +26,12 @@ export const SpotifyContextProvider = ({ children }) => {
             })
             .catch(error => {
                 setTokenExists(false)
-                console.log('token:', tokenExists)
+                console.log('token fail:', tokenExists)
             })
     }
 
     function getData(dataType) {
+        console.log('getting data context')
         axios.get(ROUTES.SERVER_URL + slug[dataType], {
             withCredentials: true,
             credentials: 'include',
@@ -69,6 +71,15 @@ export const SpotifyContextProvider = ({ children }) => {
             })
     }
 
+    function checkDataExists() {
+        if (localStorage.getItem('favoriteSongs') != null && localStorage.getItem('favoriteArtists') != null) {
+            return true
+        } else {
+            console.log('Error: No data in storage!')
+            return false
+        }
+    }
+
     function getCurrentUserProfile() {
         try {
             axios.get(`${ROUTES.SERVER_URL}/spotify/current-user`, {
@@ -84,11 +95,16 @@ export const SpotifyContextProvider = ({ children }) => {
 
     useEffect(() => {
         findToken()
+        if (checkDataExists() == false) {
+            getData('favorite_tracks')
+            getData('favorite_artists')
+        }
+        setIsReady(true);
     }, [])
 
     return (
         <SpotifyContext.Provider value={{ tokenExists, getData, getCurrentUserProfile, profile, favoriteTracks, setFavoriteTracks }}>
-            {children}
+            {isReady ? children : null}
         </SpotifyContext.Provider>
     )
 }
