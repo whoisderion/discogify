@@ -89,7 +89,7 @@ app.get('/spotify/callback', (req, res) => {
 })
 
 app.get('/close', (req, res) => {
-    res.send(res.send("<script>window.close();</script > "))
+    res.send("<script>window.close();</script >")
 })
 
 // do i redirect to this endpoint if the /spotify_callback endpoint doesn't return a 200 or an error?
@@ -360,7 +360,15 @@ app.get('/discogs/search*', (req, res) => {
                 listingInfo.push({ ...data, ...extraData })
             }
 
-            res.send(listingInfo)
+            if (listingInfo.length == 0) {
+                console.log('album not in discogs api')
+                console.log(listingInfo)
+                res.status(204).send(listingInfo)
+            } else {
+                console.log('album found')
+                console.log(listingInfo)
+                res.send(listingInfo)
+            }
         })
 })
 
@@ -368,7 +376,7 @@ function getDataFromAlbumResult(album) {
     const id = album['id']
     const masterUrl = album['master_url']
     const uri = album['uri']
-    const descriptions = { descriptions: 'No Data' }
+    let descriptions = { descriptions: 'No Data' }
     const resourceUrl = album['resource_url']
     const marketplaceLink = `https://www.discogs.com/sell/release/${id}?ev=rb`
 
@@ -377,10 +385,13 @@ function getDataFromAlbumResult(album) {
 
     try {
         if (album['formats'][0]) {
-            const descriptions = album['formats'][0]
+            descriptions = album['formats'][0]
+            // console.log('start album')
+            // console.log(album)
+            // console.log('end album')
         }
     } catch (e) {
-        console.log(e.message)
+        console.log('Error:', e.message, "; There is (probably) no description in album['formats'][0]")
     }
 
     let albumData = {
@@ -392,22 +403,39 @@ function getDataFromAlbumResult(album) {
         marketplaceLink: marketplaceLink
     }
 
+    console.log(albumData)
     return albumData
 }
 
 async function fetchAdditionResources(url) {
     try {
         const response = await axios.get(url);
-        const resObj = {
-            dateReleased: response.data['released'],
-            dateAdded: response.data['date_added'],
-            lowestPrice: response.data['lowest_price'],
-            numForSale: response.data['num_for_sale'],
-            additionalInfo: response.data['notes'],
+        let resObj = {
+            dateReleased: 'No Data',
+            dateAdded: 'No Data',
+            lowestPrice: 'No Data',
+            numForSale: 'No Data',
+            additionalInfo: 'No Data',
         };
+        if (await response.data['released']) {
+            resObj.dateReleased = response.data['released']
+        }
+        if (await response.data['date_added']) {
+            resObj.dateAdded = response.data['date_added']
+        }
+        if (await response.data['lowest_price']) {
+            resObj.lowestPrice = response.data['lowest_price']
+        }
+        if (await response.data['num_for_sale']) {
+            resObj.numForSale = response.data['num_for_sale']
+        }
+        if (await response.data['notes']) {
+            resObj.additionalInfo = response.data['notes']
+        }
+        console.log(resObj)
         return resObj;
     } catch (err) {
-        // console.log(err);
+        console.log('Fetch Additional Resources Error:', err);
         return {};
     }
 }
