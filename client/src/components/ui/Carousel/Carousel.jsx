@@ -6,21 +6,8 @@ import { useEffect } from "react";
 import "components/ui/Carousel/Carousel.css";
 
 const Carousel = ({ title, route, type, setType }) => {
-    // const { getData } = Spotify()
 
     const [view, setView] = useState("favorite_tracks")
-
-    // useEffect(() => {
-    //     const fetchTopSongs = async () => {
-    //         const data = await getData('favorite_artists')
-    //         console.log(data)
-    //     }
-    //     try {
-    //         fetchTopSongs()
-    //     } catch (e) {
-    //         console.error(e)
-    //     }
-    // }, [])
 
     const rowLength = 6
     const favoriteTracks = JSON.parse(localStorage.getItem('favoriteSongs'))
