@@ -16,8 +16,8 @@ export const SpotifyContextProvider = ({ children }) => {
         favorite_artists: '/spotify/favorite/artists?limit=50'
     }
 
-    function findToken() {
-        axios.get(`${ROUTES.SERVER_URL}/test`, {
+    async function findToken() {
+        await axios.get(`${ROUTES.SERVER_URL}/test`, {
             withCredentials: true,
             credentials: 'include',
         })
@@ -25,8 +25,15 @@ export const SpotifyContextProvider = ({ children }) => {
                 setTokenExists(true)
             })
             .catch(error => {
-                setTokenExists(false)
-                console.log('token fail:', tokenExists)
+                try {
+                    console.log('context')
+                    axios.get(ROUTES.SERVER_URL + '/spotify/refresh-token', {
+                        withCredentials: true,
+                    })
+                } catch (error) {
+                    setTokenExists(false)
+                    console.log('token fail:', tokenExists + ', status:', error.status)
+                }
             })
     }
 
