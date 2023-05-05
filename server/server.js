@@ -456,16 +456,26 @@ app.get('/test', authenticateAccessToken, (req, res) => {
 
 function authenticateAccessToken(req, res, next) {
     const token = req.cookies['accessToken']
-    //console.log(req)
+    // console.log(token)
     const currentTime = Math.floor(Date.now() / 1000)
     if (token == null) return res.sendStatus(401)
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, token) => {
-        if (err) return res.sendStatus(403)
-        req.token = token
-        console.log(currentTime - token.iat)
-        if ((currentTime - token.iat) > 3300) {
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decodedToken) => {
+        if (err) {
+            console.log('access token expired')
+            return res.sendStatus(403)
+        }
+        req.token = decodedToken
+        console.log(currentTime - decodedToken.iat)
+        if ((currentTime - decodedToken.iat) > 3500) {
             console.log('expired')
-            //axios.get('/spotify/refresh-token')
+            try {
+                console.log('authenticated token sent for refresh...')
+                // console.log('\nencrypted token:', token)
+                // console.log('\ndecodedToken.token:', decodedToken.token)
+                axios.get(`http://127.0.0.1:4444/spotify/refresh-token?token=${decodedToken.token}`)
+            } catch (e) {
+                console.log(e.data)
+            }
         }
         next()
     })
