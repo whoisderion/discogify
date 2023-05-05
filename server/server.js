@@ -71,11 +71,13 @@ app.get('/spotify/callback', (req, res) => {
         .then(response => {
             if (response.status === 200) {
                 const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token;
+                // console.log('\nREFRESH TOKEN:', SPOTIFY_REFRESH_TOKEN, '\n Secret:', REFRESH_TOKEN_SECRET)
                 const SPOTIFY_ACCESS_TOKEN = response.data.access_token;
                 const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
-                const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.REFRESH_TOKEN_SECRET)
+                const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60 * 2), }, process.env.REFRESH_TOKEN_SECRET)
                 res.cookie('accessToken', accessToken, { httpOnly: true })
                 res.cookie('refreshToken', refreshToken, { httpOnly: true, });
+                // console.log('\nJWT', refreshToken)
                 res.redirect('/close')
 
             } else {
@@ -93,39 +95,53 @@ app.get('/close', (req, res) => {
 })
 
 // do i redirect to this endpoint if the /spotify_callback endpoint doesn't return a 200 or an error?
-app.get('/spotify/refresh-token', (req, res) => {
-    const SPOTIFY_REFRESH_TOKEN = req.cookies.refreshToken
+app.get('/spotify/refresh-token*', (req, res) => {
+    //console.log(SPOTIFY_REFRESH_TOKEN)
+    let SPOTIFY_REFRESH_TOKEN = ''
 
-    const usp = new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: SPOTIFY_REFRESH_TOKEN
+    if (req.cookies.refreshToken) {
+        SPOTIFY_REFRESH_TOKEN = jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, token) => {
+            if (err) {
+                console.log('Refresh Verification Error:', err.message)
+                return null
+            }
+            //console.log('Decrypted refresh token:', token.token);
+            return token.token
+        })
+    } else {
+        console.log('\nNo refreshToken cookie found... getting token from api query')
+        SPOTIFY_REFRESH_TOKEN = req.query.token
+        console.log(req.query.token)
+    }
+
+    const data = querystring.stringify({
+        'grant_type': 'refresh_token',
+        'refresh_token': SPOTIFY_REFRESH_TOKEN
     });
+    //console.log('\ndata:', data, '\n')
 
-    axios({
-        method: 'post',
-        url: 'https://accounts.spotify.com/api/token',
-        data: usp,
+    axios.post('https://accounts.spotify.com/api/token', data, {
         headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            'Accept-Encoding': 'application/json',
             Authorization: `Basic ${new Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64")}`,
-            'Accept': 'application/json',
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        json: true
+        }
     })
         .then(response => {
-
+            console.log('refreshing... '/*, response.data*/)
             if (response.status === 200) {
                 const accessToken = jwt.sign({ token: response.data.access_token }, process.env.ACCESS_TOKEN_SECRET)
                 res.cookie('accessToken', accessToken, { httpOnly: true })
                 console.log('refreshed token!!')
             } else {
-                res.send(response);
                 console.log('not good')
+                res.send(response.data);
             }
         })
         .catch((error) => {
-            res.send(error);
-            console.log('error')
+            console.log('token refresh: Error ' + error.response.status + ' (' + error.response.request.res.statusMessage + ') \n')
+            console.log(error.response.data)
+            res.status(204).send(error.message);
         })
 })
 
