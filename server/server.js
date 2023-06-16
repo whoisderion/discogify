@@ -408,6 +408,33 @@ app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
         })
 })
 
+app.get('/spotify/getreleases/:id', authenticateAccessToken, (req, res) => {
+    const SPOTIFY_ACCESS_TOKEN = req.token.token;
+    const artistID = req.params.id
+    axios.get(`${SPOTIFY_API_URL}/artists/${artistID}/albums`, {
+        headers: {
+            Authorization: `Bearer ${SPOTIFY_ACCESS_TOKEN}`,
+            'content-type': 'application/json',
+        },
+        params: {
+            include_groups: "album,single",
+            limit: 50,
+        }
+    })
+        .then((response) => {
+            if (response.status === 200) {
+                res.send(response.data)
+            }
+        })
+        .catch((error) => {
+            if (error.status === 401) {
+                res.send('Bad/Expired Token')
+            } else {
+                res.send(error)
+            }
+        })
+})
+
 const discogsUserAgent = "Discogify/0.1 +http://discogify.com"
 const discogsClient = new Discogs(discogsUserAgent, {
     consumerKey: process.env.DISCOGS_KEY,
