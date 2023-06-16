@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// user
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  firebaseUUID      String    @unique
+  dateCreated       DateTime
+  lastSignedIn      DateTime
+  spotifyName       String?
+  spotifyEmail      String?
+  spotifyID         String?
+  spotifyCountry    String?
+  theme             String? //?
+  songs             Song[] //-
+  albums            Album[] //-
+  artist            Artist[] //-
+  lastSpotifyUpdate DateTime?
+  lastDiscogsUpdate DateTime? //-
+}
+
+// artist
+model Artist {
+  id             String  @id @default(cuid())
+  User           User?   @relation(fields: [userId], references: [id])
+  userId         String?
+  albums         Album[]
+  shortTermRank  Int
+  mediumTermRank Int
+  longTermRank   Int
+  spotifyID      Int
+}
+
+// song
+model Song {
+  id             String  @id @default(cuid())
+  User           User?   @relation(fields: [userId], references: [id])
+  userId         String?
+  name           String
+  artist         String
+  album          String
+  imageUrl       String
+  spotifyID      String
+  shortTermRank  Int
+  mediumTermRank Int
+  longTermRank   Int
+}
+
+// album
+model Album {
+  id       String  @id @default(cuid())
+  User     User?   @relation(fields: [userId], references: [id])
+  userId   String?
+  Artist   Artist? @relation(fields: [artistId], references: [id])
+  artistId String?
+  vinyl    Vinyl[]
+  // tracklist??
+}
+
+model Vinyl {
+  id             String   @id @default(cuid())
+  Album          Album?   @relation(fields: [albumId], references: [id])
+  albumId        String?
+  unitsAvailable Int
+  lowestPrice    Decimal
+  vinylType      String[]
+  additionalInfo String
+  discogsID      Int
+  releaseDate    String
+}
