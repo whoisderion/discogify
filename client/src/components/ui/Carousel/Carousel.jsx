@@ -26,16 +26,14 @@ const Carousel = ({ title, route, type, setType }) => {
 
     const handleView = () => {
         view == "favorite_tracks" ? setView("favorite_artists") : setView("favorite_tracks")
-        // console.log(view)
     }
 
     function showItems(type) {
-        //console.log(type)
         if (type.name == 'track') {
             return (
                 < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
                     {
-                        type.store.slice(0, rowLength).map((item) => (
+                        type.store.data.slice(0, rowLength).map((item) => (
                             <div className={`${item.name} `} key={item.id}>
                                 <Link to={`/catalog/${encodeURIComponent(String(item.artist).replace(/\s+/g, '-'))}/${encodeURIComponent(String(item.album).replace(/\s+/g, '-'))}`}>
                                     <div className={`${type.name}-image`}>
@@ -54,7 +52,7 @@ const Carousel = ({ title, route, type, setType }) => {
             return (
                 < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
                     {
-                        type.store.slice(0, rowLength).map((item) => (
+                        type.store.data.slice(0, rowLength).map((item) => (
                             <Link to={`/catalog/${encodeURIComponent(String(item.name).replace(/\s+/g, '-'))}`}>
                                 <div className={`${item.name}`} key={item.id}>
                                     <div className={`${type.name}-image`}>
