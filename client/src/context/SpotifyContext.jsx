@@ -26,10 +26,17 @@ export const SpotifyContextProvider = ({ children }) => {
             })
             .catch(error => {
                 try {
-                    console.log('context')
+                    // console.log(error)
+                    console.log('refreshing acccess token...')
                     axios.get(ROUTES.SERVER_URL + '/spotify/refresh-token', {
                         withCredentials: true,
                     })
+                        .then(result => {
+                            console.log('token test success!')
+                        })
+                        .catch(err => {
+                            console.log('token test failed!')
+                        })
                 } catch (error) {
                     setTokenExists(false)
                     console.log('token fail:', tokenExists + ', status:', error.status)
@@ -38,7 +45,7 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function getData(dataType) {
-        console.log('getting data context')
+        console.log('getting context data')
         axios.get(ROUTES.SERVER_URL + slug[dataType], {
             withCredentials: true,
             credentials: 'include',
@@ -58,31 +65,89 @@ export const SpotifyContextProvider = ({ children }) => {
                     })
                     console.log(response_arr)
                     setFavoriteTracks(response_arr)
-                    localStorage.setItem('favoriteSongs', JSON.stringify(response_arr))
+                    const timeCreated = Date.now()
+                    localStorage.setItem('favoriteSongs', JSON.stringify({ data: response_arr, createdAt: timeCreated }))
                     return favoriteTracks
                 }
                 if (dataType == 'favorite_artists') {
-                    response.data.items.forEach(item => {
-                        const favorite_obj = {
-                            name: item.name,
-                            image: item.images[1].url,
-                            id: item.id
+                    console.log('retreiving favorite artist data...')
+                    const startTime = Date.now()
+
+                    async function getArtistAlbums(artistId) {
+                        const response = await axios.get(ROUTES.SERVER_URL + `/spotify/getreleases/${artistId}`, {
+                            withCredentials: true,
+                            credentials: 'include',
+                        })
+                        let albums = []
+                        response.data.items.forEach(album => {
+                            const albumData = {
+                                imageLG: album.images[0],
+                                imageMD: album.images[1],
+                                imageSM: album.images[2],
+                                albumName: album.name,
+                                albumID: album.id,
+                                albumType: album.album_type,
+                                releaseDate: album.release_date
+                            }
+                            albums.push(albumData)
+                        });
+
+                        return albums
+                    }
+
+                    async function fetchArtistData(artist) {
+                        const albumData = await getArtistAlbums(artist.id);
+                        const artistWithAlbums = {
+                            name: artist.name,
+                            id: artist.id,
+                            image: artist.images[1].url,
+                            // followers: artist.followers,
+                            genres: artist.genres,
+                            albums: albumData
+                        };
+                        return artistWithAlbums;
+                    }
+
+                    async function fetchFavoriteArtistsData(favoriteArtists) {
+
+                        for (const artist of favoriteArtists) {
+                            const artistData = await fetchArtistData(artist);
+                            response_arr.push(artistData);
                         }
-                        response_arr = [...response_arr, favorite_obj]
-                    })
-                    console.log(response_arr)
-                    // setFavoriteTracks(response_arr)
-                    localStorage.setItem('favoriteArtists', JSON.stringify(response_arr))
-                    // return favoriteTracks
+                        console.log(response_arr)
+                        return response_arr;
+                    }
+
+
+                    fetchFavoriteArtistsData(response.data.items)
+                        .then(res => {
+                            console.log('favorite artist data received!')
+                            console.log(response_arr)
+                            // setFavoriteTracks(response_arr)
+                            const timeCreated = Date.now()
+                            localStorage.setItem('favoriteArtists', JSON.stringify({ data: response_arr, createdAt: timeCreated }))
+                            // return favoriteTracks
+                            const endTime = Date.now()
+                            const timeElapsed = endTime - startTime
+                            console.log(timeElapsed + ' ms')
+                        })
                 }
             })
     }
 
-    function checkDataExists() {
-        if (localStorage.getItem('favoriteSongs') != null && localStorage.getItem('favoriteArtists') != null) {
+    function checkTrackDataExists() {
+        if (localStorage.getItem('favoriteSongs') != null) {
             return true
         } else {
-            console.log('Error: No data in storage!')
+            console.log('Error: No Song data in storage!')
+            return false
+        }
+    }
+    function checkArtistDataExists() {
+        if (localStorage.getItem('favoriteArtists') != null) {
+            return true
+        } else {
+            console.log('Error: No Artist data in storage!')
             return false
         }
     }
@@ -102,9 +167,25 @@ export const SpotifyContextProvider = ({ children }) => {
 
     useEffect(() => {
         findToken()
-        if (checkDataExists() == false) {
+        if (checkTrackDataExists() == false) {
             getData('favorite_tracks')
+        }
+        if (checkArtistDataExists() == false) {
             getData('favorite_artists')
+        }
+        const oneDayUnix = 8640000
+        const currentTime = new Date()
+        if (localStorage.getItem('favoriteSongs')) {
+            const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
+            if ((currentTime > favSongCreated + oneDayUnix)) {
+                getData('favorite_tracks')
+            }
+        }
+        if (localStorage.getItem('favoriteArtists')) {
+            const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
+            if ((currentTime > favArtistCreated + oneDayUnix)) {
+                getData('favorite_artists')
+            }
         }
         setIsReady(true);
     }, [])
