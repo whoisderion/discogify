@@ -253,8 +253,8 @@ app.get('/spotify/refresh-token*', (req, res) => {
                     })
 })
 
-app.get('/spotify/current-user', authenticateAccessToken, (req, res) => {
-    SPOTIFY_ACCESS_TOKEN = req.token.token
+app.post('/spotify/current-user', (req, res) => {
+    SPOTIFY_ACCESS_TOKEN = req.body.token
     axios.get("https://api.spotify.com/v1/me", {
         headers: {
             "content-type": "application/json",
@@ -263,12 +263,14 @@ app.get('/spotify/current-user', authenticateAccessToken, (req, res) => {
     })
         .then(response => {
             if (response.status === 200) {
-                res.send(
-                    'display name: ' + response.data.display_name +
-                    ' > email: ' + response.data.email +
-                    ' > spotify id: ' + response.data.id +
-                    ' > country: ' + response.data.country
-                )
+                const spotifyData = {
+                    displayName: response.data.display_name,
+                    email: response.data.email,
+                    spotifyID: response.data.id,
+                    country: response.data.country
+                }
+                //console.log(spotifyData)
+                res.status(200).json(spotifyData)
             }
         })
         .catch((error) => {
