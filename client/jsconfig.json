@@ -9,5 +9,5 @@
         "node_modules",
         "build"
     ],
-    "proxy": "http://localhost:4444",
+    "proxy": "http://127.0.0.1/:4444",
 }
