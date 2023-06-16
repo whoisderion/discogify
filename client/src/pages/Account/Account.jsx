@@ -22,11 +22,18 @@ const Account = () => {
     }
 
     const handleSpotifyLogin = async () => {
+        const data = {
+            discogifyEmail: user.email
+        }
+
         try {
             await axios.get(`${ROUTES.SERVER_URL}/spotify/login`, {
                 withCredentials: true,
             })
                 .then(response => {
+                    axios.post(`${ROUTES.SERVER_URL}/spotify/log-callback`, data, {
+                        withCredentials: true
+                    })
                     window.open(response.data)
                 })
 
