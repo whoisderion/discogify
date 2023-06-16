@@ -1,5 +1,5 @@
 import { React, useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import axios from 'axios'
 import * as ROUTES from 'data/constants/routes'
 
@@ -12,7 +12,7 @@ const Album = () => {
     // console.log(trackName.replace(/\ +/g, '-'))
 
     const [searchResults, setSearchResults] = useState([])
-    const store = JSON.parse(localStorage.getItem('favoriteSongs'))
+    const store = JSON.parse(localStorage.getItem('favoriteSongs')).data
 
     const [albumImage, setAlbumImage] = useState('')
     const [tracklist, setTracklist] = useState([])
@@ -102,7 +102,7 @@ const Album = () => {
     if (searchResults.length !== 0) {
         return (
             <div className='Contents'>
-                <h1 className='my-6'>{albumName} by {artistName}</h1>
+                <h1 className='my-6'>{albumName} by <Link to={`/catalog/${decodeURIComponent(artist)}`}>{artistName}</Link></h1>
                 <div className='albumInfo flex'>
                     <div className='album-image'>
                         <img src={albumImage}></img>
@@ -144,7 +144,12 @@ const Album = () => {
         )
     }
     else if (tracklist[0] == 'No Tracklist on Discogs') {
-        return (<div>Not found</div>)
+        return (
+            <div>
+                <h1>This album was not found on Discogs</h1>
+                <h3>Try viewing the <Link to={`/catalog/${decodeURIComponent(artist)}`}>artist's catalog</Link> to find more vinyl releases</h3>
+            </div>
+        )
     }
     else {
         return (<div>Loading</div>)
