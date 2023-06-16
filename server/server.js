@@ -9,11 +9,13 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors');
 const { jsonp } = require('express/lib/response');
 const Discogs = require('disconnect').Client
+const moment = require('moment');
+const { PrismaClient } = require('@prisma/client');
 
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
 const corsOptions = {
-    origin: ['http://127.0.0.1:5173', 'https://accounts.spotify.com'],
+    origin: ['http://127.0.0.1:5173', 'https://accounts.spotify.com', 'https://api.discogs.com'],
     methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -23,9 +25,65 @@ app.set('json spaces', 4)
 app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
+const prisma = new PrismaClient()
 
 app.get('/', (req, res) => {
     res.send('Discogify Index')
+})
+
+app.post('/create-user', async (req, res) => {
+    // plan create User
+
+    console.log('create user request:', req.body)
+    createdDateTime = Date.parse(req.body.created.slice(5))
+    signInDateTime = Date.parse(req.body.lastSignIn.slice(5))
+
+    let email = req.body.email
+    let uid = req.body.uid
+    let created = new Date(createdDateTime)
+    let lastSignIn = new Date(signInDateTime)
+    let lastLogInUnix = new Date(req.body.lastLogInUnix)
+
+    const user = await prisma.User.create({
+        data: {
+            email: email,
+            firebaseUUID: uid,
+            dateCreated: created,
+            lastSignedIn: lastSignIn,
+        }
+    })
+
+    console.log('created new user:', user)
+
+    res.sendStatus(200)
+})
+
+app.post('/sign-in-user', async (req, res) => {
+    signInTime = new Date()
+    console.log("logging user's sign in to the DB...")
+
+    const currUser = await prisma.user.findUnique({
+        where: {
+            email: req.body.email
+        }
+    })
+
+    if (currUser == null) {
+        console.log("redirecting to '/create-user'")
+        res.redirect(307, '/create-user')
+    }
+    else {
+        console.log('user logged in')
+        const updateUser = await prisma.user.update({
+            where: {
+                email: currUser.email,
+            },
+            data: {
+                lastSignedIn: signInTime,
+            }
+        })
+        res.status(200).send(currUser)
+    }
 })
 
 app.get('/spotify/login', (req, res) => {
@@ -68,7 +126,7 @@ app.get('/spotify/callback', (req, res) => {
             Authorization: `Basic ${new Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64")}`,
         },
     })
-        .then(response => {
+        .then(async response => {
             if (response.status === 200) {
                 const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token;
                 // console.log('\nREFRESH TOKEN:', SPOTIFY_REFRESH_TOKEN, '\n Secret:', REFRESH_TOKEN_SECRET)
@@ -78,16 +136,66 @@ app.get('/spotify/callback', (req, res) => {
                 res.cookie('accessToken', accessToken, { httpOnly: true })
                 res.cookie('refreshToken', refreshToken, { httpOnly: true, });
                 // console.log('\nJWT', refreshToken)
+
                 res.redirect('/close')
 
             } else {
                 res.send(response);
+                console.loh("redirecting to '/spotify/refresh_token'...")
                 res.redirect('/spotify/refresh_token')
             }
         })
         .catch((error) => {
             res.send(error);
         })
+})
+
+app.post('/spotify/log-callback', async (req, res) => {
+
+    const spotifyUpdateTime = new Date()
+    const useremail = req.body.discogifyEmail
+    const currUser = await prisma.user.findUnique({
+        where: {
+            email: useremail
+        }
+    })
+    const SPOTIFY_ACCESS_TOKEN = req.cookies.accessToken
+    try {
+        const data = {
+            token: jwt.verify(SPOTIFY_ACCESS_TOKEN, process.env.ACCESS_TOKEN_SECRET).token
+        }
+        if ((currUser.spotifyEmail || currUser.spotifyCountry || currUser.spotifyID || currUser.spotifyName) == null) {
+            const spotifyResponse = await axios.post('http://127.0.0.1:4444/spotify/current-user', data)
+            const spotifyData = spotifyResponse.data
+            const updateUser = await prisma.user.update({
+                where: {
+                    email: currUser.email
+                },
+                data: {
+                    spotifyName: spotifyData.displayName,
+                    spotifyEmail: spotifyData.email,
+                    spotifyID: spotifyData.spotifyID,
+                    spotifyCountry: spotifyData.country,
+                    lastSpotifyUpdate: spotifyUpdateTime,
+                }
+            })
+        } else {
+            const updateUser = await prisma.user.update({
+                where: {
+                    email: currUser.email,
+                },
+                data: {
+                    lastSpotifyUpdate: spotifyUpdateTime,
+                }
+            })
+        }
+    } catch (error) {
+        const data = {
+            token: null
+        }
+        console.log('token error, its probably expired:', error)
+    }
+    res.sendStatus(200)
 })
 
 app.get('/close', (req, res) => {
@@ -114,35 +222,35 @@ app.get('/spotify/refresh-token*', (req, res) => {
         console.log(req.query.token)
     }
 
-    const data = querystring.stringify({
-        'grant_type': 'refresh_token',
-        'refresh_token': SPOTIFY_REFRESH_TOKEN
-    });
+                const data = querystring.stringify({
+                    'grant_type': 'refresh_token',
+                    'refresh_token': SPOTIFY_REFRESH_TOKEN
+                });
     //console.log('\ndata:', data, '\n')
 
-    axios.post('https://accounts.spotify.com/api/token', data, {
-        headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            'Accept-Encoding': 'application/json',
-            Authorization: `Basic ${new Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64")}`,
-        }
-    })
-        .then(response => {
-            console.log('refreshing... '/*, response.data*/)
-            if (response.status === 200) {
-                const accessToken = jwt.sign({ token: response.data.access_token }, process.env.ACCESS_TOKEN_SECRET)
-                res.cookie('accessToken', accessToken, { httpOnly: true })
-                console.log('refreshed token!!')
-            } else {
-                console.log('not good')
-                res.send(response.data);
-            }
-        })
-        .catch((error) => {
-            console.log('token refresh: Error ' + error.response.status + ' (' + error.response.request.res.statusMessage + ') \n')
-            console.log(error.response.data)
-            res.status(204).send(error.message);
-        })
+                axios.post('https://accounts.spotify.com/api/token', data, {
+                    headers: {
+                        "content-type": "application/x-www-form-urlencoded",
+                        'Accept-Encoding': 'application/json',
+                        Authorization: `Basic ${new Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64")}`,
+                    }
+                })
+                    .then(response => {
+                        console.log('refreshing... '/*, response.data*/)
+                        if (response.status === 200) {
+                            const accessToken = jwt.sign({ token: response.data.access_token }, process.env.ACCESS_TOKEN_SECRET)
+                            res.cookie('accessToken', accessToken, { httpOnly: true })
+                            console.log('refreshed token!!')
+                        } else {
+                            console.log('not good')
+                            res.send(response.data);
+                        }
+                    })
+                    .catch((error) => {
+                        console.log('token refresh: Error ' + error.response.status + ' (' + error.response.request.res.statusMessage + ') \n')
+                        console.log(error.response.data)
+                        res.status(204).send(error.message);
+                    })
 })
 
 app.get('/spotify/current-user', authenticateAccessToken, (req, res) => {
@@ -247,6 +355,7 @@ app.get('/spotify/playlists*', authenticateAccessToken, (req, res) => {
         .then((response) => {
             if (response.status === 200) {
                 res.send(response.data)
+                //plan User.playlists[]
             }
         })
         .catch((error) => {
@@ -261,6 +370,9 @@ app.get('/spotify/playlists*', authenticateAccessToken, (req, res) => {
 app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
     // test url
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
+
+    // plan: update lastSpotifyUpdate/user.songs[]/user.artists[](-> user.albums[])
+
     SPOTIFY_ACCESS_TOKEN = req.token.token;
     itemType = req.params.type
     axios.get(`${SPOTIFY_API_URL}/me/top/${itemType}`, {
@@ -277,10 +389,12 @@ app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
         .then((response) => {
             if (response.status === 200) {
                 res.send(response.data)
+                //plan User.songs[]/User.artist[] lastSpotifyUpdate
             }
             else {
                 console.log('not 200')
                 res.send(response.data)
+                //plan User.songs[]/User.artist[] lastSpotifyUpdate
             }
         })
         .catch((error) => {
@@ -343,6 +457,7 @@ app.get('/discogs/identity', function (req, res) {
 
 // test url
 // http://127.0.0.1:4444/discogs/search?artist=unknown-mortal-orchestra&album=multi-love&track=puzzles
+// plan: update lastDiscogsUpdate/Vinyl
 app.get('/discogs/search*', (req, res) => {
     var artistName = '';
     var albumName = '';
@@ -376,17 +491,25 @@ app.get('/discogs/search*', (req, res) => {
                 listingInfo.push({ ...data, ...extraData })
             }
 
+            //plan?? loop through spotify favorite songs/artists in batches of 1 every 1.2 seconds? then lastDiscogsUpdate
+
             if (listingInfo.length == 0) {
                 console.log('album not in discogs api')
-                console.log(listingInfo)
+                //console.log(listingInfo)
                 res.status(204).send(listingInfo)
             } else {
                 console.log('album found')
-                console.log(listingInfo)
+                //console.log(listingInfo)
                 res.send(listingInfo)
             }
         })
 })
+
+function convertDateTime(datetime) {
+    let dateTime = Date.parse(datetime.slice(5))
+
+    return dateTime
+}
 
 function getDataFromAlbumResult(album) {
     const id = album['id']
@@ -397,8 +520,6 @@ function getDataFromAlbumResult(album) {
     const marketplaceLink = `https://www.discogs.com/sell/release/${id}?ev=rb`
 
     // marketplaceLink to be used to obtain high price for each vinyl type 
-
-
     try {
         if (album['formats'][0]) {
             descriptions = album['formats'][0]
@@ -419,7 +540,7 @@ function getDataFromAlbumResult(album) {
         marketplaceLink: marketplaceLink
     }
 
-    console.log(albumData)
+    //console.log(albumData)
     return albumData
 }
 
