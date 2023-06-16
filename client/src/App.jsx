@@ -12,6 +12,7 @@ import Favorites from "pages/Favorites";
 import { Artist, Album } from 'pages/Catalog'
 import ProtectedRoute from "components/ProtectedRoute";
 import NavigationBar from 'components/NavigationBar';
+import PublicRoute from "components/PublicRoute"
 
 import 'App.css';
 import { AuthContextProvider } from "context/AuthContext";
@@ -27,20 +28,21 @@ function App() {
           <NavigationBar />
           <div className="App">
             <Routes>
+              {/* give home the props of what was the last selected catagory */}
               <Route
                 path={ROUTES.HOME}
-                element={<div><Home /></div>}
+                element={<ProtectedRoute><Home /></ProtectedRoute>}
               />
               <Route
                 path={ROUTES.LANDING}
                 element={<Landing />} />
               <Route
                 path={ROUTES.SIGN_UP}
-                element={<Signup />}
+                element={<PublicRoute><Signup /></PublicRoute>}
               />
               <Route
                 path={ROUTES.SIGN_IN}
-                element={<Signin />}
+                element={<PublicRoute><Signin /></PublicRoute>}
               />
               <Route
                 path={ROUTES.ACCOUNT}
@@ -48,33 +50,35 @@ function App() {
               />
               <Route
                 path={ROUTES.COLLECTION}
-                element={
+                element={<ProtectedRoute>
                   <h1>Welcome to your collection!</h1>
+                </ProtectedRoute>
                 }
               />
               <Route
                 path={ROUTES.WISHLIST}
-                element={<h1>Here's your wishlist!</h1>}
+                element={<ProtectedRoute><h1>Here's your wishlist!</h1></ProtectedRoute>}
               />
+              {/* give favorites the props of what was the last selected catagory */}
               <Route
                 path={ROUTES.RECENT_FAVORITES}
-                element={<Favorites />}
+                element={<ProtectedRoute><Favorites /></ProtectedRoute>}
               />
               <Route
                 path={ROUTES.RECENT_RELEASES}
-                element={<h1>Here are the most recent vinyl releases!</h1>}
+                element={<ProtectedRoute><h1>Here are the most recent vinyl releases!</h1></ProtectedRoute>}
               />
               <Route
                 path={ROUTES.UPCOMING_RELEASES}
-                element={<h1>Upcoming Releases</h1>}
+                element={<ProtectedRoute><h1>Upcoming Releases</h1></ProtectedRoute>}
               />
               <Route
                 path='/catalog/:artist/'
-                element={<Artist />}
+                element={<ProtectedRoute><Artist /></ProtectedRoute>}
               />
               <Route
                 path='/catalog/:artist/:album'
-                element={<Album />}
+                element={<ProtectedRoute><Album /></ProtectedRoute>}
               />
             </Routes>
           </div>
