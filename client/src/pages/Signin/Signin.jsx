@@ -4,24 +4,47 @@ import { Link, useNavigate } from 'react-router-dom'
 import * as ROUTES from 'data/constants/routes'
 import FormInput from 'components/form/FormInput'
 import { UserAuth } from 'context/AuthContext'
+import axios from 'axios';
 
 const Signin = () => {
-    const { signIn } = UserAuth()
+    const { signIn, user } = UserAuth()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('')
     const navigate = useNavigate()
 
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
         setError('')
         try {
-            await signIn(email, password)
-            navigate(ROUTES.ACCOUNT)
+            signIn(email, password)
+                .then(function (result) {
+                    const currentUser = result.user
+                    const data = {
+                        email: currentUser.email,
+                        uid: currentUser.uid,
+                        created: currentUser.metadata.creationTime,
+                        lastSignIn: currentUser.metadata.lastSignInTime,
+                        lastLogInUnix: currentUser.metadata.lastLoginAt
+                    }
+
+                    axios.post(`${ROUTES.SERVER_URL}/sign-in-user`, data, {
+                        withCredentials: true,
+                        credentials: 'include',
+                    })
+                        .then(res => {
+                            console.log('sign in logged to db')
+                        })
+                        .catch(err => {
+                            console.log('Error signing in user', err)
+                        })
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
         } catch (e) {
             setError(e.message)
-            console.log(e.message)
+            //console.log(e.message)
         }
     }
 
