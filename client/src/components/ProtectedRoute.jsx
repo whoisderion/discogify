@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children }) => {
         return (children)
     }
 
-    console.log('not logged in... leaving this protected route')
+    // console.log('not logged in... leaving this protected route')
     return <Navigate to={ROUTES.LANDING} />
 }
 
