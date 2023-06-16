@@ -6,7 +6,7 @@ const Row = ({ type, index, rowLength }) => {
         return (
             < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
                 {
-                    type.store.slice(index, (index + rowLength)).map((item, itemIndex) => (
+                    type.store.data.slice(index, (index + rowLength)).map((item, itemIndex) => (
                         <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.artist).replace(/\s+/g, '-'))}/${encodeURIComponent(String(item.album).replace(/\s+/g, '-'))}?track=${item.name}`}>
                             <div className={`${item.name}`}>
                                 <div className={`${type.name}-image`}>
@@ -21,11 +21,11 @@ const Row = ({ type, index, rowLength }) => {
                 }
             </div >
         )
-    } else {
+    } else if (type.name == 'artist') {
         return (
             < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
                 {
-                    type.store.slice(index, (index + rowLength)).map((item) => (
+                    type.store.data.slice(index, (index + rowLength)).map((item) => (
                         <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.name).replace(/\s+/g, '-'))}`}>
                             <div className={`${item.name}`}>
                                 <div className={`${type.name}-image`}>
