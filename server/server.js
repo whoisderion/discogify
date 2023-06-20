@@ -10,7 +10,7 @@ const cors = require('cors');
 const { jsonp } = require('express/lib/response');
 const Discogs = require('disconnect').Client
 const moment = require('moment');
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client'
 
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
