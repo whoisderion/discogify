@@ -15,7 +15,7 @@ const { PrismaClient } = require('@prisma/client')
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
 const corsOptions = {
-    origin: ['http://127.0.0.1:5173', 'https://accounts.spotify.com', 'https://api.discogs.com'],
+    origin: ['http://127.0.0.1:5173', 'https://accounts.spotify.com', 'https://api.discogs.com', 'https://whale-app-ebaic.ondigitalocean.app/'],
     methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
