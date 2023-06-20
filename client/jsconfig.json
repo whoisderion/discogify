@@ -9,5 +9,5 @@
         "node_modules",
         "build"
     ],
-    "proxy": "http://127.0.0.1/:4444",
+    "proxy": "https://whale-app-ebaic.ondigitalocean.app/discogify-server",
 }
