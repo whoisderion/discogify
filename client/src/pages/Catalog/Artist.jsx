@@ -9,9 +9,7 @@ const Artist = () => {
     const artistName = decodeURIComponent(artist).replace(/\-+/g, ' ')
     const store = JSON.parse(localStorage.getItem('favoriteArtists')).data
     const [artistImage, setArtistImage] = useState('')
-    const [artistID, setArtistID] = useState('')
     const [albums, setAlbums] = useState([])
-    const [followers, setFollowers] = useState(0)
     const [genres, setGenres] = useState([])
     const rowLength = 5
 
@@ -30,8 +28,6 @@ const Artist = () => {
         const artistArr = filterArr(store, artistName)[0]
         console.log(artistArr)
         setArtistImage(artistArr.image)
-        setArtistID(artistArr.id)
-        setFollowers(artistArr.followers)
         setGenres(artistArr.genres)
         setAlbums(artistArr.albums)
         return artistArr
@@ -47,22 +43,10 @@ const Artist = () => {
         });
     }
 
-    function displayRows(arr, typeName) {
-        const numAlbums = arr.length
-        const numRows = Math.ceil(numAlbums / rowLength)
-        const rowComponents = []
-        for (let i = 0; i < numRows; i++) {
-            const key = typeName + String(i)
-            rowComponents.push(<Row type={{ name: typeName }} index={i * rowLength} rowLength={rowLength} store={arr} key={key} />
-            )
-        }
-        return rowComponents
-    }
-
     if (albums != []) {
         return (
             <div>
-                <div>
+                <div className='Artist-Info'>
                     <h1>{artistName}</h1>
                     <img src={artistImage}></img>
                     <ul>
@@ -73,13 +57,13 @@ const Artist = () => {
                         }
                     </ul>
                 </div>
-                <div>
+                <div className='Albums'>
                     <h3>Albums</h3>
-                    {displayRows(albumsArr, 'album')}
+                    <Row type={{ name: 'album' }} index={0} rowLength={rowLength} store={albumsArr} />
                 </div>
-                <div>
+                <div className='Singles'>
                     <h3>Singles</h3>
-                    {displayRows(singlesArr, 'single')}
+                    <Row type={{ name: 'single' }} index={0} rowLength={rowLength} store={singlesArr} />
                 </div>
             </div>
         )
