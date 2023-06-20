@@ -28,7 +28,7 @@ const Signin = () => {
                         lastLogInUnix: currentUser.metadata.lastLoginAt
                     }
 
-                    axios.post(`${ROUTES.SERVER_URL}/sign-in-user`, data, {
+                    axios.post(`${import.meta.env.VITE_SERVER_URL}/sign-in-user`, data, {
                         withCredentials: true,
                         credentials: 'include',
                     })

@@ -1,18 +1,18 @@
 import { React, useEffect, useState } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
 import axios from 'axios'
-import * as ROUTES from 'data/constants/routes'
 
 const Album = () => {
     const { album, artist } = useParams()
     const albumName = decodeURIComponent(album).replace(/\-+/g, ' ')
-    const artistName = decodeURIComponent(artist).replace(/\-+/g, '-')
-    const [queryTrack, setQueryTrack] = useSearchParams()
+    const artistName = decodeURIComponent(artist).replace(/\-+/g, ' ')
+    const [queryTrack, setQueryTrack] = useSearchParams('')
     const trackName = decodeURIComponent(queryTrack.get("track"))
     // console.log(trackName.replace(/\ +/g, '-'))
 
     const [searchResults, setSearchResults] = useState([])
     const store = JSON.parse(localStorage.getItem('favoriteSongs')).data
+    const artistStore = JSON.parse(localStorage.getItem('favoriteArtists')).data
 
     const [albumImage, setAlbumImage] = useState('')
     const [tracklist, setTracklist] = useState([])
@@ -23,37 +23,50 @@ const Album = () => {
         getAlbumData()
     }, [])
 
-    const getAlbumData = async () => {
-        await axios.get(`${ROUTES.SERVER_URL}/discogs/search?artist=${artistName}&album=${albumName}`)
+    async function getAlbumData() {
+        await axios.get(`${import.meta.env.VITE_SERVER_URL}/discogs/search?artist=${artistName}&album=${albumName}`)
             .then(response => {
+                console.log('response received:', response.data)
+                console.log(store, albumName)
                 console.log(filterArr(store, albumName))
-                setAlbumImage(filterArr(store, albumName)[0].image)
+                if (filterArr(store, albumName)[0].image) {
+                    setAlbumImage(filterArr(store, albumName)[0].image)
+                    console.log('album in favorite songs')
+                } else if (filterArr(artistStore, albumName)[0].image) {
+                    setAlbumImage(filterArr(artistStore, albumName)[0].image)
+                    console.log('album not in favorite songs list')
+                } else {
+                    setAlbumImage('https://community.mp3tag.de/uploads/default/original/2X/a/acf3edeb055e7b77114f9e393d1edeeda37e50c9.png')
+                    console.log('album image not found')
+                }
                 setSearchResults(response.data)
-                console.log(response.status)
-                try {
+                if (response.data[0].resourceUrl !== null) {
                     axios.get(response.data[0].resourceUrl)
                         .then(res => {
+                            console.log('tracklist set (1)')
                             setTracklist(res.data.tracklist)
                             // checkTracklist(res.data.tracklist)
-                            console.log('tracklist set (1)')
                         })
                         .catch(e => {
                             console.log('tracklist error (2):', e.message)
                             setTracklist(['No Tracklist on Discogs'])
                         })
-                } catch (error) {
+                } else {
                     console.log('cant find tracklist (3.0)')
-                    searchSong()
+                    if (trackName !== null && trackName !== '') {
+                        searchSong()
+                    }
                 }
             })
             .catch((e) => {
                 console.log('discogs search (4):', e.message)
-                searchSong()
+                setTracklist(['No Tracklist on Discogs'])
+
             })
     }
 
-    const searchSong = async () => {
-        await axios.get(`${ROUTES.SERVER_URL}/discogs/search?artist=${artistName}&track=${trackName}`)
+    async function searchSong() {
+        await axios.get(`${import.meta.env.VITE_SERVER_URL}/discogs/search?artist=${artistName}&track=${trackName}`)
             .then(response => {
                 console.log('response', response)
                 setAlbumImage(filterArr(store, albumName)[0].image)
@@ -147,7 +160,7 @@ const Album = () => {
         return (
             <div>
                 <h1>This album was not found on Discogs</h1>
-                <h3>Try viewing the <Link to={`/catalog/${decodeURIComponent(artist)}`}>artist's catalog</Link> to find more vinyl releases</h3>
+                <h3>Try viewing <Link to={`/catalog/${decodeURIComponent(artist)}`}> this artist's catalog</Link> to find more vinyl releases</h3>
             </div>
         )
     }

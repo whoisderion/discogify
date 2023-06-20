@@ -27,11 +27,11 @@ const Account = () => {
         }
 
         try {
-            await axios.get(`${ROUTES.SERVER_URL}/spotify/login`, {
+            await axios.get(`${import.meta.env.VITE_SERVER_URL}/spotify/login`, {
                 withCredentials: true,
             })
                 .then(response => {
-                    axios.post(`${ROUTES.SERVER_URL}/spotify/log-callback`, data, {
+                    axios.post(`${import.meta.env.VITE_SERVER_URL}/spotify/log-callback`, data, {
                         withCredentials: true
                     })
                     window.open(response.data)

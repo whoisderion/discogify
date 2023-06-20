@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
-import * as ROUTES from 'data/constants/routes'
 import { UserAuth } from './AuthContext'
 
 const SpotifyContext = createContext()
@@ -19,7 +18,7 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     async function findToken() {
-        await axios.get(`${ROUTES.SERVER_URL}/test`, {
+        await axios.get(`${import.meta.env.VITE_SERVER_URL}/test`, {
             withCredentials: true,
             credentials: 'include',
         })
@@ -30,7 +29,7 @@ export const SpotifyContextProvider = ({ children }) => {
                 try {
                     // console.log(error)
                     console.log('refreshing acccess token...')
-                    axios.get(ROUTES.SERVER_URL + '/spotify/refresh-token', {
+                    axios.get(import.meta.env.VITE_SERVER_URL + '/spotify/refresh-token', {
                         withCredentials: true,
                     })
                         .then(result => {
@@ -48,7 +47,7 @@ export const SpotifyContextProvider = ({ children }) => {
 
     function getData(dataType) {
         console.log('getting context data')
-        axios.get(ROUTES.SERVER_URL + slug[dataType], {
+        axios.get(import.meta.env.VITE_SERVER_URL + slug[dataType], {
             withCredentials: true,
             credentials: 'include',
         })
@@ -76,7 +75,7 @@ export const SpotifyContextProvider = ({ children }) => {
                     const startTime = Date.now()
 
                     async function getArtistAlbums(artistId) {
-                        const response = await axios.get(ROUTES.SERVER_URL + `/spotify/getreleases/${artistId}`, {
+                        const response = await axios.get(import.meta.env.VITE_SERVER_URL + `/spotify/getreleases/${artistId}`, {
                             withCredentials: true,
                             credentials: 'include',
                         })
@@ -157,7 +156,7 @@ export const SpotifyContextProvider = ({ children }) => {
 
     function getCurrentUserProfile() {
         try {
-            axios.get(`${ROUTES.SERVER_URL}/spotify/current-user`, {
+            axios.get(`${import.meta.env.VITE_SERVER_URL}/spotify/current-user`, {
                 withCredentials: true,
             })
                 .then(response => {
