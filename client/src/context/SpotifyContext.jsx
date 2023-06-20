@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import * as ROUTES from 'data/constants/routes'
+import { UserAuth } from './AuthContext'
 
 const SpotifyContext = createContext()
 
 export const SpotifyContextProvider = ({ children }) => {
+    const { user } = UserAuth()
     const [isReady, setIsReady] = useState(false);
     const [tokenExists, setTokenExists] = useState(false)
     const [profile, setProfile] = useState(null)
@@ -143,6 +145,7 @@ export const SpotifyContextProvider = ({ children }) => {
             return false
         }
     }
+
     function checkArtistDataExists() {
         if (localStorage.getItem('favoriteArtists') != null) {
             return true
@@ -166,29 +169,39 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        findToken()
-        if (checkTrackDataExists() == false) {
-            getData('favorite_tracks')
-        }
-        if (checkArtistDataExists() == false) {
-            getData('favorite_artists')
-        }
-        const oneDayUnix = 8640000
-        const currentTime = new Date()
-        if (localStorage.getItem('favoriteSongs')) {
-            const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
-            if ((currentTime > favSongCreated + oneDayUnix)) {
-                getData('favorite_tracks')
+        if (user) {
+            try {
+                findToken()
+                if (checkTrackDataExists() == false) {
+                    getData('favorite_tracks')
+                }
+                if (checkArtistDataExists() == false) {
+                    getData('favorite_artists')
+                }
+                const oneDayUnix = 8640000
+                const currentTime = new Date()
+                if (localStorage.getItem('favoriteSongs')) {
+                    const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
+                    if ((currentTime > favSongCreated + oneDayUnix)) {
+                        getData('favorite_tracks')
+                    }
+                }
+                if (localStorage.getItem('favoriteArtists')) {
+                    const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
+                    if ((currentTime > favArtistCreated + oneDayUnix)) {
+                        getData('favorite_artists')
+                    }
+                }
+                setIsReady(true);
+            } catch (error) {
+                console.log('spotify token is expired')
+                setIsReady(true)
             }
+        } else {
+            setIsReady(true);
         }
-        if (localStorage.getItem('favoriteArtists')) {
-            const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
-            if ((currentTime > favArtistCreated + oneDayUnix)) {
-                getData('favorite_artists')
-            }
-        }
-        setIsReady(true);
-    }, [])
+
+    }, [user])
 
     return (
         <SpotifyContext.Provider value={{ tokenExists, getData, getCurrentUserProfile, profile, favoriteTracks, setFavoriteTracks }}>

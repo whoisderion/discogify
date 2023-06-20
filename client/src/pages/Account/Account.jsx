@@ -41,7 +41,6 @@ const Account = () => {
             console.log(e.message)
         }
     }
-
     return (
         <div>
             <h1>Account Settings</h1>

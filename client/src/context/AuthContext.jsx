@@ -7,23 +7,18 @@ import {
     getAuth
 } from 'firebase/auth'
 import { auth } from 'data/firebase'
-import axios from 'axios'
-import * as ROUTES from 'data/constants/routes'
 
 const UserContext = createContext()
 
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState({})
-
-    // plan: dateCreated/firebaseUUID/email
+    const [isReady, setIsReady] = useState(false);
 
     const createUser = (email, password) => {
         return createUserWithEmailAndPassword(auth, email, password)
     }
 
     const signIn = async (email, password) => {
-        //const user = await signInWithEmailAndPassword(auth, email, password)
-        //console.log(user)
         return signInWithEmailAndPassword(auth, email, password)
     }
 
@@ -34,6 +29,7 @@ export const AuthContextProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser)
+            setIsReady(true)
         })
         return () => {
             unsubscribe()
@@ -42,7 +38,7 @@ export const AuthContextProvider = ({ children }) => {
 
     return (
         <UserContext.Provider value={{ createUser, user, logout, signIn }}>
-            {children}
+            {isReady && children}
         </UserContext.Provider>
     )
 }
