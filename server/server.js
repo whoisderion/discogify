@@ -137,7 +137,7 @@ app.get('/spotify/callback', (req, res) => {
                 res.cookie('refreshToken', refreshToken, { httpOnly: true, });
                 // console.log('\nJWT', refreshToken)
 
-                res.redirect('/close')
+                res.send("<script>window.close();</script >")
 
             } else {
                 res.send(response);
