@@ -7,7 +7,7 @@ import { UserAuth } from 'context/AuthContext'
 import axios from 'axios';
 
 const Signin = () => {
-    const { signIn, user } = UserAuth()
+    const { signIn } = UserAuth()
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('')
