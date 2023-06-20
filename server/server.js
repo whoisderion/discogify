@@ -165,7 +165,7 @@ app.post('/spotify/log-callback', async (req, res) => {
             token: jwt.verify(SPOTIFY_ACCESS_TOKEN, process.env.ACCESS_TOKEN_SECRET).token
         }
         if ((currUser.spotifyEmail || currUser.spotifyCountry || currUser.spotifyID || currUser.spotifyName) == null) {
-            const spotifyResponse = await axios.post('http://127.0.0.1:4444/spotify/current-user', data)
+            const spotifyResponse = await axios.post('/spotify/current-user', data)
             const spotifyData = spotifyResponse.data
             const updateUser = await prisma.user.update({
                 where: {
@@ -638,7 +638,7 @@ function authenticateAccessToken(req, res, next) {
                 console.log('authenticated token sent for refresh...')
                 // console.log('\nencrypted token:', token)
                 // console.log('\ndecodedToken.token:', decodedToken.token)
-                axios.get(`http://127.0.0.1:4444/spotify/refresh-token?token=${decodedToken.token}`)
+                axios.get(`/spotify/refresh-token?token=${decodedToken.token}`)
             } catch (e) {
                 console.log(e.data)
             }
@@ -665,5 +665,5 @@ function handleAuthorizationResponse(res) {
 }
 
 app.listen(process.env.PORT, () => {
-    console.log(`The server is running on process.env.port ${process.env.PORT}`)
+    console.log(`The server is running on port ${process.env.PORT}`)
 }) 
