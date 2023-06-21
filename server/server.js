@@ -617,7 +617,7 @@ function filterAlbumResults(results) {
     return filteredResults
 }
 
-app.get('/test', authenticateAccessToken, (req, res) => {
+app.get('/test', (req, res) => {
     res.sendStatus(200)
 })
 
