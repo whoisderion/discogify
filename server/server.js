@@ -12,6 +12,7 @@ const Discogs = require('disconnect').Client
 const moment = require('moment');
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+// const path = require('path')
 
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
@@ -131,6 +132,10 @@ app.get('/spotify/callback', (req, res) => {
             if (response.status === 200) {
                 const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token;
                 // console.log('\nREFRESH TOKEN:', SPOTIFY_REFRESH_TOKEN, '\n Secret:', REFRESH_TOKEN_SECRET)
+                console.log('generated new Spotify tokens')
+                console.log('access token:' + SPOTIFY_ACCESS_TOKEN + '\nspotify refresh token: ' + SPOTIFY_REFRESH_TOKEN)
+                console.log('access secret: ' + process.env(ACCESS_TOKEN_SECRET))
+                console.log('refresh secret: ' + process.env(REFRESH_TOKEN_SECRET))
                 const SPOTIFY_ACCESS_TOKEN = response.data.access_token;
                 const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
                 const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60 * 2), }, process.env.REFRESH_TOKEN_SECRET)
@@ -207,27 +212,14 @@ app.get('/close', (req, res) => {
 app.get('/spotify/refresh-token*', (req, res) => {
     //console.log(SPOTIFY_REFRESH_TOKEN)
     let SPOTIFY_REFRESH_TOKEN = ''
-
     if (req.cookies.refreshToken) {
-        SPOTIFY_REFRESH_TOKEN = jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, token) => {
-            if (err) {
-                console.log('Refresh Verification Error:', err.message)
-                return null
-            }
-            //console.log('Decrypted refresh token:', token.token);
-            return token.token
-        })
-    } else {
-        console.log('\nNo refreshToken cookie found... getting token from api query')
-        SPOTIFY_REFRESH_TOKEN = req.query.token
-        console.log(req.query.token)
-    }
-
+        jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, token) => {
+            if (token) {
+                SPOTIFY_REFRESH_TOKEN = token
                 const data = querystring.stringify({
                     'grant_type': 'refresh_token',
                     'refresh_token': SPOTIFY_REFRESH_TOKEN
                 });
-    //console.log('\ndata:', data, '\n')
 
                 axios.post('https://accounts.spotify.com/api/token', data, {
                     headers: {
@@ -248,10 +240,16 @@ app.get('/spotify/refresh-token*', (req, res) => {
                         }
                     })
                     .catch((error) => {
-                        console.log('token refresh: Error ' + error.response.status + ' (' + error.response.request.res.statusMessage + ') \n')
-                        console.log(error.response.data)
+                        console.log(error.response)
+                        console.log('token refresh: Error ' + error.response.status + ' (' + error.response.data.error + '): ' + error.response.data.error_description + '\n')
                         res.status(204).send(error.message);
                     })
+            } else {
+                console.log('Refresh Verification Error:', err.message + '\n> please get a new refresh token')
+            }
+            //console.log('Decrypted refresh token:', token.token);
+        })
+    }
 })
 
 app.post('/spotify/current-user', (req, res) => {
@@ -492,6 +490,7 @@ app.get('/discogs/search*', (req, res) => {
     var artistName = '';
     var albumName = '';
     var trackName = '';
+    let vinylObj = {}
 
     if (req.query.artist) {
         artistName = req.query.artist
@@ -503,12 +502,22 @@ app.get('/discogs/search*', (req, res) => {
         trackName = req.query.track
     }
 
-    const vinylObj = {
-        artist: artistName,
-        release_title: albumName,
-        track: trackName,
-        format: 'vinyl'
+    if (artistName !== '' && albumName !== '') {
+        vinylObj = {
+            artist: artistName,
+            release_title: albumName,
+            format: 'vinyl'
+        }
+    } else {
+        vinylObj = {
+            artist: artistName,
+            release_title: albumName,
+            track: trackName,
+            format: 'vinyl'
+        }
     }
+
+    // console.log(vinylObj)
 
     discogsDB.search(vinylObj)
         .then(async (searchList) => {
@@ -517,6 +526,13 @@ app.get('/discogs/search*', (req, res) => {
             const searchResults = filterAlbumResults(searchList["results"])
             for (const album of searchResults) {
                 const data = getDataFromAlbumResult(album)
+
+                /* 
+                break requests up to return the data first, then incrementally 
+                batch the requests for extraData in groups of 5, change frontend 
+                to show loading for each square until the extraData is loaded
+                */
+
                 const extraData = await fetchAdditionResources(data['resourceUrl'])
                 listingInfo.push({ ...data, ...extraData })
             }
@@ -524,7 +540,7 @@ app.get('/discogs/search*', (req, res) => {
             //plan?? loop through spotify favorite songs/artists in batches of 1 every 1.2 seconds? then lastDiscogsUpdate
 
             if (listingInfo.length == 0) {
-                console.log('album not in discogs api')
+                console.log('vinyl not in discogs api')
                 //console.log(listingInfo)
                 res.status(204).send(listingInfo)
             } else {
@@ -599,10 +615,14 @@ async function fetchAdditionResources(url) {
         if (await response.data['notes']) {
             resObj.additionalInfo = response.data['notes']
         }
-        console.log(resObj)
-        return resObj;
+        const rateLimit = response.headers['x-discogs-ratelimit']
+        const rateLimitRemaining = response.headers['x-discogs-ratelimit-remaining']
+        const rateLimitUsed = response.headers['x-discogs-ratelimit-used']
+        const releaseID = response.data.id
+        console.log(rateLimit, rateLimitRemaining, rateLimitUsed, releaseID)
+        return resObj
     } catch (err) {
-        console.log('Fetch Additional Resources Error:', err);
+        console.log('Fetch Additional Resources Error:', err.response.data.message)
         return {};
     }
 }
@@ -623,10 +643,11 @@ app.get('/test', (req, res) => {
 
 function authenticateAccessToken(req, res, next) {
     const token = req.cookies['accessToken']
-    // console.log(token)
+    const refreshToken = req.cookies['refreshToken']
+    //console.log(refreshToken)
     const currentTime = Math.floor(Date.now() / 1000)
     if (token == null) return res.sendStatus(401)
-    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decodedToken) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decodedToken) => {
         if (err) {
             console.log('access token expired')
             return res.sendStatus(403)
@@ -667,4 +688,6 @@ function handleAuthorizationResponse(res) {
 
 app.listen(process.env.PORT, () => {
     console.log(`The server is running on port ${process.env.PORT}`)
-}) 
+})
+
+// app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../build/index.html')); })
