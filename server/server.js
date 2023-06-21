@@ -143,7 +143,7 @@ app.get('/spotify/callback', (req, res) => {
                 res.cookie('refreshToken', refreshToken, { httpOnly: true, });
                 // console.log('\nJWT', refreshToken)
 
-                res.redirect('/close')
+                res.redirect('/discogify-server/close')
 
             } else {
                 res.send(response);
