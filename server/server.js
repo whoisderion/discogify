@@ -132,18 +132,18 @@ app.get('/spotify/callback', (req, res) => {
             if (response.status === 200) {
                 const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token;
                 // console.log('\nREFRESH TOKEN:', SPOTIFY_REFRESH_TOKEN, '\n Secret:', REFRESH_TOKEN_SECRET)
+                const SPOTIFY_ACCESS_TOKEN = response.data.access_token;
                 console.log('generated new Spotify tokens')
                 console.log('access token:' + SPOTIFY_ACCESS_TOKEN + '\nspotify refresh token: ' + SPOTIFY_REFRESH_TOKEN)
-                console.log('access secret: ' + process.env(ACCESS_TOKEN_SECRET))
-                console.log('refresh secret: ' + process.env(REFRESH_TOKEN_SECRET))
-                const SPOTIFY_ACCESS_TOKEN = response.data.access_token;
+                console.log('\naccess secret: ' + process.env.ACCESS_TOKEN_SECRET)
+                console.log('\nrefresh secret: ' + process.env.REFRESH_TOKEN_SECRET)
                 const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
                 const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60 * 2), }, process.env.REFRESH_TOKEN_SECRET)
                 res.cookie('accessToken', accessToken, { httpOnly: true })
                 res.cookie('refreshToken', refreshToken, { httpOnly: true, });
                 // console.log('\nJWT', refreshToken)
 
-                res.send("<script>window.close();</script >")
+                res.redirect('/close')
 
             } else {
                 res.send(response);
