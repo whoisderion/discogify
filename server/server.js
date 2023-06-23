@@ -533,8 +533,7 @@ app.get('/discogs/search*', (req, res) => {
                 to show loading for each square until the extraData is loaded
                 */
 
-                const extraData = await fetchAdditionResources(data['resourceUrl'])
-                listingInfo.push({ ...data, ...extraData })
+                listingInfo.push(data)
             }
 
             //plan?? loop through spotify favorite songs/artists in batches of 1 every 1.2 seconds? then lastDiscogsUpdate
@@ -545,10 +544,25 @@ app.get('/discogs/search*', (req, res) => {
                 res.status(204).send(listingInfo)
             } else {
                 console.log('album found')
-                //console.log(listingInfo)
+                // console.log(listingInfo)
                 res.send(listingInfo)
             }
         })
+        .catch(err => {
+            console.log('search error', err)
+            res.status(204).send([])
+        })
+})
+
+app.get('/discogs/getAdditonal*', async (req, res) => {
+    // const userID = req.cookies
+    // console.log(req)
+    const releaseId = req.query.id
+    const urlPrefix = 'https://api.discogs.com/releases/'
+
+    const data = await fetchAdditionResources(urlPrefix + String(releaseId))
+
+    res.send(data)
 })
 
 function convertDateTime(datetime) {
@@ -590,6 +604,7 @@ function getDataFromAlbumResult(album) {
     return albumData
 }
 
+// const extraData = await fetchAdditionResources(data['resourceUrl'])
 async function fetchAdditionResources(url) {
     try {
         const response = await axios.get(url);
@@ -619,10 +634,15 @@ async function fetchAdditionResources(url) {
         const rateLimitRemaining = response.headers['x-discogs-ratelimit-remaining']
         const rateLimitUsed = response.headers['x-discogs-ratelimit-used']
         const releaseID = response.data.id
-        console.log(rateLimit, rateLimitRemaining, rateLimitUsed, releaseID)
+        console.log('ratelimit: ' + rateLimit + ';\nratelimit remaining: ' + rateLimitRemaining + ';\nratelimit used: ' + rateLimitUsed + ';\n--------' + releaseID + '--------\n')
         return resObj
     } catch (err) {
         console.log('Fetch Additional Resources Error:', err.response.data.message)
+        const rateLimit = err.response.headers['x-discogs-ratelimit']
+        const rateLimitRemaining = err.response.headers['x-discogs-ratelimit-remaining']
+        const rateLimitUsed = err.response.headers['x-discogs-ratelimit-used']
+        const releaseID = err.response.data.id
+        console.log('ratelimit: ' + rateLimit + ';\nratelimit remaining: ' + rateLimitRemaining + ';\nratelimit used: ' + rateLimitUsed + ';\n--------' + releaseID + '--------\n')
         return {};
     }
 }
