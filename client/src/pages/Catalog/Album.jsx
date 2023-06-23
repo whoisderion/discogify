@@ -178,7 +178,7 @@ const Album = () => {
                         {showAddtionalData(resultsArr, 'numForSale')}
                     </div>
                     <div className='lowest-price'>
-                        <p className='inline-flex mr-1'>Lowest Price: $</p>
+                        <p className='inline-flex'>Lowest Price: $</p>
                         {showAddtionalData(resultsArr, 'lowestPrice')}
                     </div>
                     <div className='vinyl-types'>
