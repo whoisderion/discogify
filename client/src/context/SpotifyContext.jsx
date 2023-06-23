@@ -170,8 +170,8 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        if (JSON.parse(window.localStorage.getItem('view')) !== null) {
-            viewStart = JSON.parse(window.localStorage.getItem('view'))
+        if (JSON.parse(window.sessionStorage.getItem('view')) !== null) {
+            viewStart = JSON.parse(window.sessionStorage.getItem('view'))
             setView(viewStart)
         } else {
             viewStart = "favorite_tracks"
@@ -212,13 +212,13 @@ export const SpotifyContextProvider = ({ children }) => {
 
     function handleView() {
         if (view == "favorite_tracks") {
-            window.localStorage.setItem('view', JSON.stringify("favorite_artists"))
-            const storage = JSON.parse(window.localStorage.getItem('view'))
+            window.sessionStorage.setItem('view', JSON.stringify("favorite_artists"))
+            const storage = JSON.parse(window.sessionStorage.getItem('view'))
             setView(storage)
             console.log(view)
         } else {
-            window.localStorage.setItem('view', JSON.stringify("favorite_tracks"))
-            const storage = JSON.parse(window.localStorage.getItem('view'))
+            window.sessionStorage.setItem('view', JSON.stringify("favorite_tracks"))
+            const storage = JSON.parse(window.sessionStorage.getItem('view'))
             setView(storage)
             console.log(view)
         }
