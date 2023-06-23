@@ -10,6 +10,7 @@ export const SpotifyContextProvider = ({ children }) => {
     const [tokenExists, setTokenExists] = useState(false)
     const [profile, setProfile] = useState(null)
     const [favoriteTracks, setFavoriteTracks] = useState([])
+    const [view, setView] = useState("favorite_tracks")
 
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
     const slug = {
@@ -202,8 +203,12 @@ export const SpotifyContextProvider = ({ children }) => {
 
     }, [user])
 
+    function handleView() {
+        view == "favorite_tracks" ? setView("favorite_artists") : setView("favorite_tracks")
+    }
+
     return (
-        <SpotifyContext.Provider value={{ tokenExists, getData, getCurrentUserProfile, profile, favoriteTracks, setFavoriteTracks }}>
+        <SpotifyContext.Provider value={{ tokenExists, getData, getCurrentUserProfile, profile, favoriteTracks, setFavoriteTracks, view, handleView }}>
             {isReady ? children : null}
         </SpotifyContext.Provider>
     )

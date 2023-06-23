@@ -8,7 +8,7 @@ import "components/ui/Carousel/Carousel.css";
 
 const Carousel = ({ title, route, type, setType }) => {
 
-    const [view, setView] = useState("favorite_tracks")
+    const { view, handleView } = Spotify()
 
     const rowLength = 6
     console.log(type)
@@ -23,9 +23,6 @@ const Carousel = ({ title, route, type, setType }) => {
         }
     }
 
-    const handleView = () => {
-        view == "favorite_tracks" ? setView("favorite_artists") : setView("favorite_tracks")
-    }
 
     return (
         <div className="Carousel">

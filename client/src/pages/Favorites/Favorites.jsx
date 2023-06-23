@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import Row from 'components/ui/Row'
+import { Spotify } from 'context/SpotifyContext'
 
 const Favorites = () => {
 
-    const [view, setView] = useState("favorite_tracks")
+    const { view, handleView } = Spotify()
 
     const rowLength = 6
     const numRows = Math.ceil(50 / rowLength)
@@ -19,10 +20,6 @@ const Favorites = () => {
             name: 'track',
             store: favoriteTracks
         }
-    }
-
-    const handleView = () => {
-        view == "favorite_tracks" ? setView("favorite_artists") : setView("favorite_tracks")
     }
 
     return (
