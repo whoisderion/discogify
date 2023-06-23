@@ -9,8 +9,8 @@ const Row = ({ type, rowLength, store, maxRows }) => {
                 itemsArr.push(
                     <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.artist).replace(/\s+/g, '-'))}/${encodeURIComponent(String(item.album).replace(/\s+/g, '-'))}?track=${item.name}`}>
                         <div className={`${item.name}`}>
-                            <div className={`${type.name}-image`}>
-                                <img src={item.image} className='aspect-square object-cover' />
+                            <div className={`${type.name}-image aspect-square`}>
+                                <img src={item.image} className='aspect-square object-cover min-w-full' />
                             </div>
                             <p>{item.name}</p>
                             {item.artist && <p>{item.artist}</p>}
@@ -24,7 +24,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
+            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4 gap-7`}>
                 {createComponents()}
             </div >
         )
@@ -35,8 +35,8 @@ const Row = ({ type, rowLength, store, maxRows }) => {
                 itemsArr.push(
                     <Link key={item.id} id={item.id} to={`/catalog/${encodeURIComponent(String(item.name).replace(/\s+/g, '-'))}`}>
                         <div className={`${item.name}`}>
-                            <div className={`${type.name}-image`}>
-                                <img src={item.image} className='aspect-square object-cover' />
+                            <div className={`${type.name}-image aspect-square`}>
+                                <img src={item.image} className='aspect-square object-cover min-w-full' />
                             </div>
                             <p>{item.name}</p>
                             {item.artist && <p>{item.artist}</p>}
@@ -50,7 +50,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4`}>
+            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4 gap-7`}>
                 {
                     createComponents()
                 }
@@ -62,9 +62,9 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             let itemsArr = []
             store.forEach((item) => {
                 itemsArr.push(
-                    <div key={item.albumID}>
+                    <div key={item.albumID} className='aspect-square'>
                         <Link to={`/catalog/${artist}/${encodeURIComponent(String(item.albumName).replace(/\s+/g, '-'))}`}>
-                            <img src={item.imageMD.url}></img>
+                            <img src={item.imageMD.url} className='aspect-square object-cover min-w-full'></img>
                             <p>
                                 {item.albumName}
                             </p>
@@ -78,7 +78,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4`}>
+            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4 gap-7`}>
                 {
                     createComponents()
                 }
@@ -89,8 +89,8 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             let itemsArr = []
             store.forEach((item) => {
                 itemsArr.push(
-                    <div key={item.albumID}>
-                        <img src={item.imageMD.url}></img>
+                    <div key={item.albumID} className='aspect-square'>
+                        <img src={item.imageMD.url} className='aspect-square object-cover min-w-full'></img>
                         <p>
                             {item.albumName}
                         </p>
@@ -104,7 +104,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
         }
 
         return (
-            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4`}>
+            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4 gap-7`}>
                 {
                     createComponents()
                 }

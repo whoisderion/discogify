@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { Spotify } from "context/SpotifyContext";
 import Row from "../Row";
 
-import "components/ui/Carousel/Carousel.css";
-
 const Carousel = ({ title, route, type, setType }) => {
 
     const { view, handleView } = Spotify()
