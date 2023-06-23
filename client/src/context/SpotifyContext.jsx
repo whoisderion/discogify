@@ -5,13 +5,14 @@ import { UserAuth } from './AuthContext'
 const SpotifyContext = createContext()
 
 export const SpotifyContextProvider = ({ children }) => {
+    let viewStart = "favorite_tracks"
     const { user } = UserAuth()
     const [isReady, setIsReady] = useState(false);
     const [tokenExists, setTokenExists] = useState(false)
     const [profile, setProfile] = useState(null)
     const [favoriteTracks, setFavoriteTracks] = useState([])
-    const [view, setView] = useState("favorite_tracks")
-
+    const [view, setView] = useState(viewStart)
+    //"favorite_tracks"
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
     const slug = {
         favorite_tracks: '/spotify/favorite/tracks?limit=50',
@@ -169,6 +170,12 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     useEffect(() => {
+        if (JSON.parse(window.localStorage.getItem('view')) !== null) {
+            viewStart = JSON.parse(window.localStorage.getItem('view'))
+            setView(viewStart)
+        } else {
+            viewStart = "favorite_tracks"
+        }
         if (user) {
             try {
                 findToken()
@@ -204,7 +211,17 @@ export const SpotifyContextProvider = ({ children }) => {
     }, [user])
 
     function handleView() {
-        view == "favorite_tracks" ? setView("favorite_artists") : setView("favorite_tracks")
+        if (view == "favorite_tracks") {
+            window.localStorage.setItem('view', JSON.stringify("favorite_artists"))
+            const storage = JSON.parse(window.localStorage.getItem('view'))
+            setView(storage)
+            console.log(view)
+        } else {
+            window.localStorage.setItem('view', JSON.stringify("favorite_tracks"))
+            const storage = JSON.parse(window.localStorage.getItem('view'))
+            setView(storage)
+            console.log(view)
+        }
     }
 
     return (

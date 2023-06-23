@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from "react";
+import { React } from "react";
 import { Link } from "react-router-dom";
 import { Spotify } from "context/SpotifyContext";
-import { useEffect } from "react";
 import Row from "../Row";
 
 import "components/ui/Carousel/Carousel.css";
@@ -11,7 +10,6 @@ const Carousel = ({ title, route, type, setType }) => {
     const { view, handleView } = Spotify()
 
     const rowLength = 6
-    console.log(type)
     const types = {
         'favorite_artists': {
             name: 'artist',
