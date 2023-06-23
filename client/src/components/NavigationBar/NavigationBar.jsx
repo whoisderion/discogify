@@ -14,9 +14,10 @@ const NavigationBar = () => {
                     {user ?
                         <>
                             <Link to={ROUTES.HOME}><h1>Discogify</h1></Link>
+                            <Link to={ROUTES.RECENT_FAVORITES}><li>Favorites</li></Link>
                             <Link to={ROUTES.ACCOUNT}><li>Account</li></Link>
-                            <Link to={ROUTES.COLLECTION}><li>My Collection</li></Link>
-                            <Link to={ROUTES.WISHLIST}><li>My Wishlist</li></Link>
+                            {/* <Link to={ROUTES.COLLECTION}><li>My Collection</li></Link>
+                            <Link to={ROUTES.WISHLIST}><li>My Wishlist</li></Link> */}
                         </> :
                         <>
                             <Link to={ROUTES.LANDING}><h1>Discogify</h1></Link>
