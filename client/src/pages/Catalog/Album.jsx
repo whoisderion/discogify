@@ -37,7 +37,7 @@ const Album = () => {
             clearInterval(interval)
         }
 
-    }, [additionalData, searchResults])
+    }, [additionalData, searchResults, tracklist])
 
     async function getAlbumData() {
         await axios.get(`${import.meta.env.VITE_SERVER_URL}/discogs/search?artist=${artistName}&album=${albumName}`)
@@ -60,7 +60,7 @@ const Album = () => {
                         .then(res => {
                             console.log('tracklist set (1)')
                             setTracklist(res.data.tracklist)
-                            // checkTracklist(res.data.tracklist)
+                            checkTracklist(res.data.tracklist)
                         })
                         .catch(e => {
                             console.log('tracklist error (2):', e.message)
@@ -123,6 +123,7 @@ const Album = () => {
             })
         });
     }
+
     function findAlbumByName(albums, name) {
         return albums.find(album => album.albumName === name);
     }
