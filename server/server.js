@@ -210,6 +210,10 @@ app.get('/discogify-server/close', (req, res) => {
     res.send("<script>window.close();</script >")
 })
 
+app.get('/close', (req, res) => {
+    res.send("<script>window.close();</script >")
+})
+
 // do i redirect to this endpoint if the /spotify_callback endpoint doesn't return a 200 or an error?
 app.get('/spotify/refresh-token*', (req, res) => {
     //console.log(SPOTIFY_REFRESH_TOKEN)
