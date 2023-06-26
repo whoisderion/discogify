@@ -21,22 +21,36 @@ const Account = () => {
         }
     }
 
-    const handleSpotifyLogin = async () => {
+    async function loginSpotify() {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/spotify/login`, {
+            withCredentials: true,
+        })
+
+        return window.open(response.data)
+    }
+
+    async function logCallback() {
         const data = {
             discogifyEmail: user.email
         }
+        const response_log = await axios.post(`${import.meta.env.VITE_SERVER_URL}/spotify/log-callback`, data, {
+            withCredentials: true
+        })
 
+        return response_log
+    }
+
+    const handleSpotifyLogin = async () => {
         try {
-            await axios.get(`${import.meta.env.VITE_SERVER_URL}/spotify/login`, {
-                withCredentials: true,
-            })
-                .then(response => {
-                    axios.post(`${import.meta.env.VITE_SERVER_URL}/spotify/log-callback`, data, {
-                        withCredentials: true
-                    })
-                    window.open(response.data)
-                })
-
+            const child = await loginSpotify()
+            const timer = setInterval(checkChild, 500)
+            async function checkChild() {
+                if (child.closed) {
+                    // location.reload()
+                    clearInterval(timer)
+                    await logCallback()
+                }
+            }
         } catch (e) {
             console.log(e.message)
         }

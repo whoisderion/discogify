@@ -62,7 +62,7 @@ app.post('/create-user', async (req, res) => {
 
 app.post('/sign-in-user', async (req, res) => {
     signInTime = new Date()
-    console.log("logging user's sign in to the DB...")
+    console.log("(1.0) logging user's sign in to the DB...")
 
     const currUser = await prisma.user.findUnique({
         where: {
@@ -75,7 +75,6 @@ app.post('/sign-in-user', async (req, res) => {
         res.redirect(307, '/create-user')
     }
     else {
-        console.log('user logged in')
         const updateUser = await prisma.user.update({
             where: {
                 email: currUser.email,
@@ -130,24 +129,21 @@ app.get('/spotify/callback', (req, res) => {
     })
         .then(async response => {
             if (response.status === 200) {
-                const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token;
-                // console.log('\nREFRESH TOKEN:', SPOTIFY_REFRESH_TOKEN, '\n Secret:', REFRESH_TOKEN_SECRET)
-                const SPOTIFY_ACCESS_TOKEN = response.data.access_token;
-                console.log('generated new Spotify tokens')
-                console.log('access token:' + SPOTIFY_ACCESS_TOKEN + '\nspotify refresh token: ' + SPOTIFY_REFRESH_TOKEN)
-                console.log('\naccess secret: ' + process.env.ACCESS_TOKEN_SECRET)
-                console.log('\nrefresh secret: ' + process.env.REFRESH_TOKEN_SECRET)
-                const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
-                const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60 * 2), }, process.env.REFRESH_TOKEN_SECRET)
+                const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token
+                const SPOTIFY_ACCESS_TOKEN = response.data.access_token
+                // console.log('(2.0) generated new Spotify tokens...')
+                // access token: 60 * 60
+                // refresh token: 60 * 60 * 2
+                const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60), }, process.env.ACCESS_TOKEN_SECRET)
+                const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (120), }, process.env.REFRESH_TOKEN_SECRET)
                 res.cookie('accessToken', accessToken, { httpOnly: true })
-                res.cookie('refreshToken', refreshToken, { httpOnly: true, });
-                // console.log('\nJWT', refreshToken)
+                res.cookie('refreshToken', refreshToken, { httpOnly: true, })
 
                 res.redirect('/discogify-server/close')
 
             } else {
                 res.send(response);
-                console.loh("redirecting to '/spotify/refresh_token'...")
+                console.log("redirecting to '/spotify/refresh_token'...")
                 res.redirect('/spotify/refresh_token')
             }
         })
@@ -157,7 +153,7 @@ app.get('/spotify/callback', (req, res) => {
 })
 
 app.post('/spotify/log-callback', async (req, res) => {
-
+    // console.log('(3.0) logging callback')
     const spotifyUpdateTime = new Date()
     const useremail = req.body.discogifyEmail
     const currUser = await prisma.user.findUnique({
@@ -166,9 +162,10 @@ app.post('/spotify/log-callback', async (req, res) => {
         }
     })
     const SPOTIFY_ACCESS_TOKEN = req.cookies.accessToken
+    // console.log('(3.1) accessToken exists: ' + (SPOTIFY_ACCESS_TOKEN != null))
     try {
         const data = {
-            token: jwt.verify(SPOTIFY_ACCESS_TOKEN, process.env.ACCESS_TOKEN_SECRET).token
+            token: jwt.verify(SPOTIFY_ACCESS_TOKEN, process.env.ACCESS_TOKEN_SECRET)
         }
         if ((currUser.spotifyEmail || currUser.spotifyCountry || currUser.spotifyID || currUser.spotifyName) == null) {
             const spotifyResponse = await axios.post('/spotify/current-user', data)
@@ -185,6 +182,7 @@ app.post('/spotify/log-callback', async (req, res) => {
                     lastSpotifyUpdate: spotifyUpdateTime,
                 }
             })
+            console.log('updated user login w/ new info')
         } else {
             const updateUser = await prisma.user.update({
                 where: {
@@ -194,17 +192,21 @@ app.post('/spotify/log-callback', async (req, res) => {
                     lastSpotifyUpdate: spotifyUpdateTime,
                 }
             })
+            console.log('updated user login')
         }
     } catch (error) {
-        const data = {
-            token: null
+        if (req.cookies.refreshToken != null) {
+            // console.log('(3.e1) token error:', error.message)
+            console.log('there is a refresh token')
+        } else {
+            // console.log('(3.e2) token error:', error.message)
+            console.log('there is NOT a refresh token')
         }
-        console.log('token error, its probably expired:', error)
     }
     res.sendStatus(200)
 })
 
-app.get('/close', (req, res) => {
+app.get('/discogify-server/close', (req, res) => {
     res.send("<script>window.close();</script >")
 })
 
@@ -273,6 +275,7 @@ app.post('/spotify/current-user', (req, res) => {
             }
         })
         .catch((error) => {
+            console.log("'/spotify/current-user' error: " + error.message)
             if (error.response.status === 401) {
                 res.send('Bad/Expired Token')
             } else {
