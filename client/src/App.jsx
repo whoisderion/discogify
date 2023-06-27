@@ -13,6 +13,7 @@ import { Artist, Album } from 'pages/Catalog'
 import ProtectedRoute from "components/ProtectedRoute";
 import NavigationBar from 'components/NavigationBar';
 import PublicRoute from "components/PublicRoute"
+import Footer from "components/Footer";
 
 import 'App.css';
 import { AuthContextProvider } from "context/AuthContext";
@@ -82,6 +83,7 @@ function App() {
               />
             </Routes>
           </div>
+          <Footer />
         </Router>
       </SpotifyContextProvider>
     </AuthContextProvider>
