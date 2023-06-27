@@ -179,10 +179,10 @@ export const SpotifyContextProvider = ({ children }) => {
         let statement = 'Just a sec...'
         if (!tracksAreReady) {
             console.log('tracks are not ready')
-            statement = 'Getting favorite songs from Spotify'
+            statement = 'Getting your favorite songs from Spotify'
         } else if (!artistAreReady) {
             console.log('artists are not ready')
-            statement = 'Getting favorite artists from Spotify'
+            statement = 'Getting your favorite artists from Spotify'
         }
         return (
             <div className='my-[7%]'>
