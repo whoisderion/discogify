@@ -128,24 +128,17 @@ app.get('/spotify/callback', (req, res) => {
         },
     })
         .then(async response => {
-            if (response.status === 200) {
-                const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token
-                const SPOTIFY_ACCESS_TOKEN = response.data.access_token
-                // console.log('(2.0) generated new Spotify tokens...')
-                // access token: 60 * 60
-                // refresh token: 60 * 60 * 2
-                const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60), }, process.env.ACCESS_TOKEN_SECRET)
-                const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (120), }, process.env.REFRESH_TOKEN_SECRET)
-                res.cookie('accessToken', accessToken, { httpOnly: true })
-                res.cookie('refreshToken', refreshToken, { httpOnly: true, })
+            const SPOTIFY_REFRESH_TOKEN = response.data.refresh_token
+            const SPOTIFY_ACCESS_TOKEN = response.data.access_token
+            // console.log('(2.0) generated new Spotify tokens...')
+            // access token: 60 * 60
+            // refresh token: 60 * 60 * 2
+            const accessToken = jwt.sign({ token: SPOTIFY_ACCESS_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
+            const refreshToken = jwt.sign({ token: SPOTIFY_REFRESH_TOKEN, exp: Math.floor(Date.now() / 1000) + (60 * 60 * 2), }, process.env.REFRESH_TOKEN_SECRET)
+            res.cookie('accessToken', accessToken, { httpOnly: true })
+            res.cookie('refreshToken', refreshToken, { httpOnly: true, })
 
-                res.redirect('/discogify-server/close')
-
-            } else {
-                res.send(response);
-                console.log("redirecting to '/spotify/refresh_token'...")
-                res.redirect('/spotify/refresh_token')
-            }
+            res.redirect('/discogify-server/close')
         })
         .catch((error) => {
             res.send(error);
@@ -194,6 +187,8 @@ app.post('/spotify/log-callback', async (req, res) => {
             })
             console.log('updated user login')
         }
+
+        res.sendStatus(200)
     } catch (error) {
         if (req.cookies.refreshToken != null) {
             // console.log('(3.e1) token error:', error.message)
@@ -202,8 +197,8 @@ app.post('/spotify/log-callback', async (req, res) => {
             // console.log('(3.e2) token error:', error.message)
             console.log('there is NOT a refresh token')
         }
+        res.sendStatus(204)
     }
-    res.sendStatus(200)
 })
 
 app.get('/discogify-server/close', (req, res) => {
@@ -214,17 +209,16 @@ app.get('/close', (req, res) => {
     res.send("<script>window.close();</script >")
 })
 
-// do i redirect to this endpoint if the /spotify_callback endpoint doesn't return a 200 or an error?
 app.get('/spotify/refresh-token*', (req, res) => {
     //console.log(SPOTIFY_REFRESH_TOKEN)
     let SPOTIFY_REFRESH_TOKEN = ''
+    console.log('cookie exists:', (req.cookies.refreshToken != null))
     if (req.cookies.refreshToken) {
         jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, token) => {
             if (token) {
-                SPOTIFY_REFRESH_TOKEN = token
                 const data = querystring.stringify({
                     'grant_type': 'refresh_token',
-                    'refresh_token': SPOTIFY_REFRESH_TOKEN
+                    'refresh_token': token.token
                 });
 
                 axios.post('https://accounts.spotify.com/api/token', data, {
@@ -235,19 +229,15 @@ app.get('/spotify/refresh-token*', (req, res) => {
                     }
                 })
                     .then(response => {
-                        console.log('refreshing... '/*, response.data*/)
-                        if (response.status === 200) {
-                            const accessToken = jwt.sign({ token: response.data.access_token }, process.env.ACCESS_TOKEN_SECRET)
-                            res.cookie('accessToken', accessToken, { httpOnly: true })
-                            console.log('refreshed token!!')
-                        } else {
-                            console.log('not good')
-                            res.send(response.data);
-                        }
+                        console.log('refreshing... ')
+                        const accessToken = jwt.sign({ token: response.data.access_token, exp: Math.floor(Date.now() / 1000) + (60 * 60), }, process.env.ACCESS_TOKEN_SECRET)
+                        // console.log(jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET))
+                        res.cookie('accessToken', accessToken, { httpOnly: true })
+                        console.log('refreshed token!!')
+                        res.sendStatus(200)
                     })
                     .catch((error) => {
-                        console.log(error.response)
-                        console.log('token refresh: Error ' + error.response.status + ' (' + error.response.data.error + '): ' + error.response.data.error_description + '\n')
+                        console.log('token refresh Error:', error.response)
                         res.status(204).send(error.message);
                     })
             } else {
@@ -666,6 +656,24 @@ function filterAlbumResults(results) {
 
 app.get('/test', (req, res) => {
     res.sendStatus(200)
+})
+
+app.get('/verify-token', (req, res) => {
+    let access, refresh = false
+    try {
+        access = jwt.verify(req.cookies.accessToken, process.env.ACCESS_TOKEN_SECRET)
+        refresh = jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET)
+        // console.log('these tokens are okay!')
+        res.send({ accessToken: true, refreshToken: true })
+    } catch (e) {
+        console.log('THESE TOKENS ARE NO GOOD ABORT! ABORT!!! AB-\n' + e.message)
+        try {
+            refresh = jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET)
+            res.send({ accessToken: false, refreshToken: true })
+        } catch (error) {
+            res.send({ accessToken: false, refreshToken: false })
+        }
+    }
 })
 
 function authenticateAccessToken(req, res, next) {

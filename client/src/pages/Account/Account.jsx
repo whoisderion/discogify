@@ -46,7 +46,6 @@ const Account = () => {
             const timer = setInterval(checkChild, 500)
             async function checkChild() {
                 if (child.closed) {
-                    // location.reload()
                     clearInterval(timer)
                     await logCallback()
                 }

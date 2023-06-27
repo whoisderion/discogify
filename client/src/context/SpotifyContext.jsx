@@ -12,6 +12,7 @@ export const SpotifyContextProvider = ({ children }) => {
     const [profile, setProfile] = useState(null)
     const [favoriteTracks, setFavoriteTracks] = useState([])
     const [view, setView] = useState(viewStart)
+    const [tokenRefreshed, setTokenRefreshed] = useState(false)
     //"favorite_tracks"
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
     const slug = {
@@ -48,7 +49,7 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function getData(dataType) {
-        console.log('getting context data')
+        console.log('getting data')
         axios.get(import.meta.env.VITE_SERVER_URL + slug[dataType], {
             withCredentials: true,
             credentials: 'include',
@@ -177,38 +178,82 @@ export const SpotifyContextProvider = ({ children }) => {
             viewStart = "favorite_tracks"
         }
         if (user) {
-            try {
-                findToken()
-                if (checkTrackDataExists() == false) {
-                    getData('favorite_tracks')
-                }
-                if (checkArtistDataExists() == false) {
-                    getData('favorite_artists')
-                }
-                const oneDayUnix = 8640000
-                const currentTime = new Date()
-                if (localStorage.getItem('favoriteSongs')) {
-                    const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
-                    if ((currentTime > favSongCreated + oneDayUnix)) {
-                        getData('favorite_tracks')
-                    }
-                }
-                if (localStorage.getItem('favoriteArtists')) {
-                    const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
-                    if ((currentTime > favArtistCreated + oneDayUnix)) {
-                        getData('favorite_artists')
-                    }
-                }
-                setIsReady(true);
-            } catch (error) {
-                console.log('spotify token is expired')
-                setIsReady(true)
+            async function verifyToken() {
+                const status = await axios.get(import.meta.env.VITE_SERVER_URL + '/verify-token', {
+                    withCredentials: true,
+                })
+                return status
             }
+
+            let tokenIsValid = false
+            let refreshTokenIsValid = false
+
+            const checkTokenStatus = verifyToken().then(async res => {
+                tokenIsValid = res.data.accessToken
+                refreshTokenIsValid = res.data.refreshToken
+                // console.log('token status: ', tokenIsValid, '|', refreshTokenIsValid)
+
+                if (tokenIsValid) {
+                    try {
+                        findToken()
+                        if (checkTrackDataExists() == false) {
+                            getData('favorite_tracks')
+                        }
+                        if (checkArtistDataExists() == false) {
+                            getData('favorite_artists')
+                        }
+                        const oneDayUnix = 8640000
+                        const currentTime = new Date()
+                        if (localStorage.getItem('favoriteSongs')) {
+                            const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
+                            if ((currentTime > favSongCreated + oneDayUnix)) {
+                                getData('favorite_tracks')
+                            }
+                        }
+                        if (localStorage.getItem('favoriteArtists')) {
+                            const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
+                            if ((currentTime > favArtistCreated + oneDayUnix)) {
+                                getData('favorite_artists')
+                            }
+                        }
+                        setIsReady(true);
+                    } catch (error) {
+                        console.log('spotify token is expired')
+                        setIsReady(true)
+                    }
+                } else if (refreshTokenIsValid) {
+                    // console.log('need to refresh token')
+                    axios.get(import.meta.env.VITE_SERVER_URL + '/spotify/refresh-token', {
+                        withCredentials: true,
+                    })
+                        .then(() => {
+                            setTokenRefreshed(true);
+                            setIsReady(true);
+                        })
+                        .catch((error) => {
+                            console.log('token refresh Error:', error.response);
+                            setIsReady(true);
+                        });
+                } else {
+                    // reroute to the account page and prmpt the user to log into spotify again
+                    console.log('need to prompt user')
+                    // location.replace()
+                    const target = (new URL(window.location.href).origin) + '/account'
+                    console.log(window.location.href)
+                    console.log(target)
+                    if (window.location.href != target) {
+                        window.location.assign("/account")
+                        alert("Please log into Spotify")
+                    }
+                    setIsReady(true)
+                }
+            })
+
         } else {
             setIsReady(true);
         }
 
-    }, [user])
+    }, [user, tokenRefreshed])
 
     function handleView() {
         if (view == "favorite_tracks") {
