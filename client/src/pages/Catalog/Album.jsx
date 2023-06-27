@@ -230,7 +230,7 @@ const Album = () => {
                 </div>
                 <div className='marketListings'>
                     <h3>Vinyl on the market</h3>
-                    <div className='results inline-grid grid-cols-2 lg:grid-cols-4 2xl:grid-cols-6 mb-4 gap-4 xl:gap-7'>
+                    <div className='results inline-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 mb-4 gap-4 xl:gap-7'>
                         {
                             displayDiscogsResults()
                         }
