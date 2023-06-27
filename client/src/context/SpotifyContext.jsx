@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { UserAuth } from './AuthContext'
+import spinner from '../assets/spinner.svg'
 
 const SpotifyContext = createContext()
 
@@ -13,6 +14,9 @@ export const SpotifyContextProvider = ({ children }) => {
     const [favoriteTracks, setFavoriteTracks] = useState([])
     const [view, setView] = useState(viewStart)
     const [tokenRefreshed, setTokenRefreshed] = useState(false)
+    const [tracksAreReady, setTracksAreReady] = useState(false)
+    const [artistAreReady, setArtistAreReady] = useState(false)
+
     //"favorite_tracks"
     // http://127.0.0.1:4444/spotify/favorite/tracks?limit=4
     const slug = {
@@ -71,6 +75,7 @@ export const SpotifyContextProvider = ({ children }) => {
                     setFavoriteTracks(response_arr)
                     const timeCreated = Date.now()
                     localStorage.setItem('favoriteSongs', JSON.stringify({ data: response_arr, createdAt: timeCreated }))
+                    setTracksAreReady(true)
                     return favoriteTracks
                 }
                 if (dataType == 'favorite_artists') {
@@ -113,12 +118,12 @@ export const SpotifyContextProvider = ({ children }) => {
                     }
 
                     async function fetchFavoriteArtistsData(favoriteArtists) {
-
                         for (const artist of favoriteArtists) {
                             const artistData = await fetchArtistData(artist);
                             response_arr.push(artistData);
                         }
                         console.log(response_arr)
+                        setArtistAreReady(true)
                         return response_arr;
                     }
 
@@ -170,6 +175,27 @@ export const SpotifyContextProvider = ({ children }) => {
         }
     }
 
+    function Spinner() {
+        let statement = 'Getting data from Spotify...'
+        if (!tracksAreReady) {
+            console.log('tracks are not ready')
+            statement = 'Getting favorite songs from Spotify'
+        } else if (!artistAreReady) {
+            console.log('artists are not ready')
+            statement = 'Getting favorite artists from Spotify'
+        }
+        return (
+            <div className='my-[7%]'>
+                <img
+                    src={spinner}
+                    alt="Getting data from Spotify..."
+                    className='w-[30%] mx-auto'
+                />
+                <p className='text-3xl text-center'>{statement}</p>
+            </div>
+        )
+    }
+
     useEffect(() => {
         if (JSON.parse(window.sessionStorage.getItem('view')) !== null) {
             viewStart = JSON.parse(window.sessionStorage.getItem('view'))
@@ -194,32 +220,35 @@ export const SpotifyContextProvider = ({ children }) => {
                 // console.log('token status: ', tokenIsValid, '|', refreshTokenIsValid)
 
                 if (tokenIsValid) {
-                    try {
-                        findToken()
-                        if (checkTrackDataExists() == false) {
+                    findToken()
+                    if (checkTrackDataExists() == false) {
+                        setTracksAreReady(false)
+                        getData('favorite_tracks')
+                    } else {
+                        setTracksAreReady(true)
+                    }
+                    if (checkArtistDataExists() == false) {
+                        setTracksAreReady(false)
+                        getData('favorite_artists')
+                    } else {
+                        setArtistAreReady(true)
+                    }
+                    const oneDayUnix = 8640000
+                    const currentTime = new Date()
+                    if (localStorage.getItem('favoriteSongs')) {
+                        const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
+                        if ((currentTime > favSongCreated + oneDayUnix)) {
                             getData('favorite_tracks')
                         }
-                        if (checkArtistDataExists() == false) {
+                    }
+                    if (localStorage.getItem('favoriteArtists')) {
+                        const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
+                        if ((currentTime > favArtistCreated + oneDayUnix)) {
                             getData('favorite_artists')
                         }
-                        const oneDayUnix = 8640000
-                        const currentTime = new Date()
-                        if (localStorage.getItem('favoriteSongs')) {
-                            const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
-                            if ((currentTime > favSongCreated + oneDayUnix)) {
-                                getData('favorite_tracks')
-                            }
-                        }
-                        if (localStorage.getItem('favoriteArtists')) {
-                            const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
-                            if ((currentTime > favArtistCreated + oneDayUnix)) {
-                                getData('favorite_artists')
-                            }
-                        }
+                    }
+                    if (artistAreReady && tracksAreReady) {
                         setIsReady(true);
-                    } catch (error) {
-                        console.log('spotify token is expired')
-                        setIsReady(true)
                     }
                 } else if (refreshTokenIsValid) {
                     // console.log('need to refresh token')
@@ -239,8 +268,8 @@ export const SpotifyContextProvider = ({ children }) => {
                     console.log('need to prompt user')
                     // location.replace()
                     const target = (new URL(window.location.href).origin) + '/account'
-                    console.log(window.location.href)
-                    console.log(target)
+                    // console.log(window.location.href)
+                    // console.log(target)
                     if (window.location.href != target) {
                         window.location.assign("/account")
                         alert("Please log into Spotify")
@@ -253,7 +282,7 @@ export const SpotifyContextProvider = ({ children }) => {
             setIsReady(true);
         }
 
-    }, [user, tokenRefreshed])
+    }, [user, tokenRefreshed, tracksAreReady, artistAreReady])
 
     function handleView() {
         if (view == "favorite_tracks") {
@@ -271,7 +300,7 @@ export const SpotifyContextProvider = ({ children }) => {
 
     return (
         <SpotifyContext.Provider value={{ tokenExists, getData, getCurrentUserProfile, profile, favoriteTracks, setFavoriteTracks, view, handleView }}>
-            {isReady ? children : null}
+            {isReady ? children : Spinner()}
         </SpotifyContext.Provider>
     )
 }
