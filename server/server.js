@@ -2,17 +2,14 @@ require('dotenv').config();
 const express = require('express')
 const axios = require('axios')
 const querystring = require('querystring')
-const { response } = require('express')
 const app = express()
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const cors = require('cors');
-const { jsonp } = require('express/lib/response');
 const Discogs = require('disconnect').Client
-const moment = require('moment');
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient } = require('@prisma/client');
+const { access } = require('fs');
 const prisma = new PrismaClient()
-// const path = require('path')
 
 const SCOPE = ['playlist-read-private user-top-read user-library-read user-read-private user-read-email']
 const SPOTIFY_API_URL = "https://api.spotify.com/v1"
@@ -27,7 +24,6 @@ app.set('json spaces', 4)
 app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
-
 
 app.get('/', (req, res) => {
     res.send('Discogify Index')
