@@ -24,7 +24,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4 gap-7`}>
+            < div className={`${type.name}-layout inline-grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-4 gap-4 xl:gap-7`}>
                 {createComponents()}
             </div >
         )
@@ -39,7 +39,6 @@ const Row = ({ type, rowLength, store, maxRows }) => {
                                 <img src={item.image} className='aspect-square object-cover min-w-full' />
                             </div>
                             <p>{item.name}</p>
-                            {item.artist && <p>{item.artist}</p>}
                         </div>
                     </Link>
                 )
@@ -50,7 +49,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            < div className={`${type.name}-layout inline-grid grid-cols-6 mb-4 gap-7`}>
+            < div className={`${type.name}-layout inline-grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-4 gap-4 xl:gap-7`}>
                 {
                     createComponents()
                 }
@@ -78,7 +77,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
             return itemsArr
         }
         return (
-            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4 gap-7`}>
+            <div className={`${type.name}-layout inline-grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-4 gap-4 xl:gap-7`}>
                 {
                     createComponents()
                 }
@@ -104,7 +103,7 @@ const Row = ({ type, rowLength, store, maxRows }) => {
         }
 
         return (
-            <div className={`${type.name}-layout inline-grid grid-cols-5 mb-4 gap-7`}>
+            <div className={`${type.name}-layout inline-grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-4 gap-4 xl:gap-7`}>
                 {
                     createComponents()
                 }
