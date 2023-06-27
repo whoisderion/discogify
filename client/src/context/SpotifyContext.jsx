@@ -176,7 +176,7 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function Spinner() {
-        let statement = 'Getting data from Spotify...'
+        let statement = 'Just a sec...'
         if (!tracksAreReady) {
             console.log('tracks are not ready')
             statement = 'Getting favorite songs from Spotify'
