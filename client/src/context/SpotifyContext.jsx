@@ -79,7 +79,7 @@ export const SpotifyContextProvider = ({ children }) => {
                     return favoriteTracks
                 }
                 if (dataType == 'favorite_artists') {
-                    console.log('retreiving favorite artist data...')
+                    // console.log('retreiving favorite artist data...')
                     const startTime = Date.now()
 
                     async function getArtistAlbums(artistId) {
@@ -145,27 +145,26 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function checkTrackDataExists() {
-        console.log('checking track data...')
-        console.log(localStorage.getItem('favoriteSongs'))
+        // console.log('checking track data...')
+
         if (localStorage.getItem('favoriteSongs') != null) {
             setTracksAreReady(true)
             return true
         } else {
-            console.log('Error: No Song data in storage!')
+            // console.log('Error: No Song data in storage!')
             setTracksAreReady(false)
             return false
         }
     }
 
     function checkArtistDataExists() {
-        console.log('checking artist data...')
-        console.log(localStorage.getItem('favoriteArtists'))
+        // console.log('checking artist data...')
 
         if (localStorage.getItem('favoriteArtists') != null) {
             setArtistAreReady(true)
             return true
         } else {
-            console.log('Error: No Artist data in storage!')
+            // console.log('Error: No Artist data in storage!')
             setArtistAreReady(false)
             return false
         }
@@ -226,6 +225,9 @@ export const SpotifyContextProvider = ({ children }) => {
             const checkTokenStatus = verifyToken().then(async res => {
                 tokenIsValid = res.data.accessToken
                 refreshTokenIsValid = res.data.refreshToken
+
+                const oneDayUnix = 8640000
+                const currentTime = new Date()
                 // console.log('token status: ', tokenIsValid, '|', refreshTokenIsValid)
 
                 if (tokenIsValid) {
@@ -234,27 +236,23 @@ export const SpotifyContextProvider = ({ children }) => {
                         setTracksAreReady(false)
                         getData('favorite_tracks')
                     } else {
+                        const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
+                        if ((currentTime > favSongCreated + oneDayUnix)) {
+                            setTracksAreReady(false)
+                            getData('favorite_tracks')
+                        }
                         setTracksAreReady(true)
                     }
                     if (checkArtistDataExists() == false) {
                         setArtistAreReady(false)
                         getData('favorite_artists')
                     } else {
-                        setArtistAreReady(true)
-                    }
-                    const oneDayUnix = 8640000
-                    const currentTime = new Date()
-                    if (localStorage.getItem('favoriteSongs')) {
-                        const favSongCreated = JSON.parse(localStorage.getItem('favoriteSongs')).createdAt
-                        if ((currentTime > favSongCreated + oneDayUnix)) {
-                            getData('favorite_tracks')
-                        }
-                    }
-                    if (localStorage.getItem('favoriteArtists')) {
                         const favArtistCreated = JSON.parse(localStorage.getItem('favoriteArtists')).createdAt
                         if ((currentTime > favArtistCreated + oneDayUnix)) {
+                            setArtistAreReady(false)
                             getData('favorite_artists')
                         }
+                        setArtistAreReady(true)
                     }
                     if (artistAreReady && tracksAreReady) {
                         setIsReady(true);
