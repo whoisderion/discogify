@@ -42,20 +42,23 @@ const Account = () => {
     }
 
     const handleSpotifyLogin = async () => {
-        try {
-            const child = await loginSpotify()
-            const timer = setInterval(checkChild, 500)
-            async function checkChild() {
-                await logCallback()
-                console.log(child)
-                if (child) {
-                    clearInterval(timer)
-                    await logCallback()
-                }
-            }
-        } catch (e) {
-            console.log(e.message)
-        }
+        await loginSpotify()
+        // Need to fix for DB logging
+
+        // try {
+        //     const child = await loginSpotify()
+        //     const timer = setInterval(checkChild, 500)
+        //     async function checkChild() {
+        //         await logCallback()
+        //         console.log(child)
+        //         if (child) {
+        //             clearInterval(timer)
+        //             //await logCallback()
+        //         }
+        //     }
+        // } catch (e) {
+        //     console.log(e.message)
+        // }
     }
     return (
         <div>

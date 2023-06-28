@@ -130,8 +130,8 @@ export const SpotifyContextProvider = ({ children }) => {
 
                     fetchFavoriteArtistsData(response.data.items)
                         .then(res => {
-                            console.log('favorite artist data received!')
-                            console.log(response_arr)
+                            // console.log('favorite artist data received!')
+                            // console.log(response_arr)
                             // setFavoriteTracks(response_arr)
                             const timeCreated = Date.now()
                             localStorage.setItem('favoriteArtists', JSON.stringify({ data: response_arr, createdAt: timeCreated }))
@@ -231,7 +231,6 @@ export const SpotifyContextProvider = ({ children }) => {
                 // console.log('token status: ', tokenIsValid, '|', refreshTokenIsValid)
 
                 if (tokenIsValid) {
-                    findToken()
                     if (checkTrackDataExists() == false) {
                         setTracksAreReady(false)
                         getData('favorite_tracks')
