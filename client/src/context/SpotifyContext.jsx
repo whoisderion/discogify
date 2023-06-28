@@ -146,18 +146,22 @@ export const SpotifyContextProvider = ({ children }) => {
 
     function checkTrackDataExists() {
         if (localStorage.getItem('favoriteSongs') != null) {
+            setTracksAreReady(true)
             return true
         } else {
             console.log('Error: No Song data in storage!')
+            setTracksAreReady(false)
             return false
         }
     }
 
     function checkArtistDataExists() {
         if (localStorage.getItem('favoriteArtists') != null) {
+            setArtistAreReady(true)
             return true
         } else {
             console.log('Error: No Artist data in storage!')
+            setArtistAreReady(false)
             return false
         }
     }
