@@ -134,7 +134,7 @@ app.get('/spotify/callback', (req, res) => {
             res.cookie('accessToken', accessToken, { httpOnly: true })
             res.cookie('refreshToken', refreshToken, { httpOnly: true, })
 
-            res.send('https://discogify.com/discogify-server/close')
+            res.send('/discogify-server/close')
         })
         .catch((error) => {
             res.send(error);
