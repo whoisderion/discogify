@@ -134,7 +134,7 @@ app.get('/spotify/callback', (req, res) => {
             res.cookie('accessToken', accessToken, { httpOnly: true })
             res.cookie('refreshToken', refreshToken, { httpOnly: true, })
 
-            res.send('/discogify-server/close')
+            res.send('<script>window.close();</script >')
         })
         .catch((error) => {
             res.send(error);
@@ -198,7 +198,7 @@ app.post('/spotify/log-callback', async (req, res) => {
 })
 
 app.get('/discogify-server/close', (req, res) => {
-    res.redirect("<script>window.close();</script >")
+    res.send("<script>window.close();</script >")
 })
 
 app.get('/close', (req, res) => {
