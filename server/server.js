@@ -198,7 +198,7 @@ app.post('/spotify/log-callback', async (req, res) => {
 })
 
 app.get('/discogify-server/close', (req, res) => {
-    res.send("<script>window.close();</script >")
+    res.redirect("<script>window.close();</script >")
 })
 
 app.get('/close', (req, res) => {
