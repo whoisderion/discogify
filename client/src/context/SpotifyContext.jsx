@@ -178,10 +178,10 @@ export const SpotifyContextProvider = ({ children }) => {
     function Spinner() {
         let statement = 'Just a sec...'
         if (!tracksAreReady) {
-            console.log('tracks are not ready')
+            // console.log('tracks are not ready')
             statement = 'Getting your favorite songs from Spotify'
         } else if (!artistAreReady) {
-            console.log('artists are not ready')
+            // console.log('artists are not ready')
             statement = 'Getting your favorite artists from Spotify'
         }
         return (
@@ -211,7 +211,7 @@ export const SpotifyContextProvider = ({ children }) => {
                 return status
             }
 
-            let tokenIsValid = false
+            let tokenIsValid = {}
             let refreshTokenIsValid = false
 
             const checkTokenStatus = verifyToken().then(async res => {
@@ -228,7 +228,7 @@ export const SpotifyContextProvider = ({ children }) => {
                         setTracksAreReady(true)
                     }
                     if (checkArtistDataExists() == false) {
-                        setTracksAreReady(false)
+                        setArtistAreReady(false)
                         getData('favorite_artists')
                     } else {
                         setArtistAreReady(true)
@@ -265,12 +265,12 @@ export const SpotifyContextProvider = ({ children }) => {
                         });
                 } else {
                     // reroute to the account page and prmpt the user to log into spotify again
-                    console.log('need to prompt user')
+                    // console.log('need to prompt user')
                     // location.replace()
-                    const target = (new URL(window.location.href).origin) + '/account'
+                    const accountPage = (new URL(window.location.href).origin) + '/account'
                     // console.log(window.location.href)
                     // console.log(target)
-                    if (window.location.href != target) {
+                    if (window.location.href != accountPage) {
                         window.location.assign("/account")
                         alert("Please log into Spotify")
                     }
