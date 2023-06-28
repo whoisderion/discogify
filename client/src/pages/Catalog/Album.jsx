@@ -136,11 +136,15 @@ const Album = () => {
 
     function checkTracklist(arr) {
         const lastSide = arr.slice(-1)[0].position[0].codePointAt(0)
-        const sideOne = "A".charCodeAt(0)
+        const sideOne = arr[0].position[0].charCodeAt(0)
         const numSides = (lastSide - sideOne) + 1
-        console.log(lastSide, sideOne)
-        // console.log(numSides / 2)
+        const numVinyl = numSides / 2
+        console.log(numSides, numVinyl)
+        tracklist.map((item, itemIndex) => {
+            console.log(item)
+        })
         // split up tracks by disks
+
     }
 
     function showAddtionalData(arr, dataType) {

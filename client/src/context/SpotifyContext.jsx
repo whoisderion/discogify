@@ -145,6 +145,8 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function checkTrackDataExists() {
+        console.log('checking track data...')
+        console.log(localStorage.getItem('favoriteSongs'))
         if (localStorage.getItem('favoriteSongs') != null) {
             setTracksAreReady(true)
             return true
@@ -156,6 +158,9 @@ export const SpotifyContextProvider = ({ children }) => {
     }
 
     function checkArtistDataExists() {
+        console.log('checking artist data...')
+        console.log(localStorage.getItem('favoriteArtists'))
+
         if (localStorage.getItem('favoriteArtists') != null) {
             setArtistAreReady(true)
             return true
