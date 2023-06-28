@@ -26,21 +26,8 @@ const Account = () => {
             withCredentials: true,
         })
 
-        return window.open(response.data)
-    }
+        window.open(response.data)
 
-    async function logCallback() {
-        const data = {
-            discogifyEmail: user.email
-        }
-        const response_log = await axios.post(`${import.meta.env.VITE_SERVER_URL}/spotify/log-callback`, data, {
-            withCredentials: true
-        })
-
-        return response_log
-    }
-
-    const handleSpotifyLogin = async () => {
         try {
             const child = await loginSpotify()
             const timer = setInterval(checkChild, 500)
@@ -54,11 +41,23 @@ const Account = () => {
             console.log(e.message)
         }
     }
+
+    async function logCallback() {
+        const data = {
+            discogifyEmail: user.email
+        }
+        const response_log = await axios.post(`${import.meta.env.VITE_SERVER_URL}/spotify/log-callback`, data, {
+            withCredentials: true
+        })
+
+        return response_log
+    }
+
     return (
         <div>
             <h1>Account Settings</h1>
             <h2>Discogify Settings</h2>
-            <h3>User Email:{user && user.email}</h3>
+            <h3>User Email: {user && user.email}</h3>
             <button onClick={handleLogout}>Logout of Discogify</button>
 
             <h2>Spotify</h2>
@@ -66,7 +65,7 @@ const Account = () => {
                 <div>
                     <h3>{profile}</h3>
                 </div>
-                : <button onClick={handleSpotifyLogin}>Login to of Spotify</button>
+                : <button onClick={loginSpotify}>Login to of Spotify</button>
             }
         </div>
     )
