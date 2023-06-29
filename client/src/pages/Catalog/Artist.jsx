@@ -25,12 +25,15 @@ const Artist = () => {
     }
 
     function getArtistData() {
-        const artistArr = filterArr(store, artistName)[0]
-        console.log(artistArr)
-        setArtistImage(artistArr.image)
-        setGenres(artistArr.genres)
-        setAlbums(artistArr.albums)
-        return artistArr
+        try {
+            const artistArr = filterArr(store, artistName)[0]
+            setArtistImage(artistArr.image)
+            setGenres(artistArr.genres)
+            setAlbums(artistArr.albums)
+            return artistArr
+        } catch (err) {
+            return setAlbums(['not found in favorites'])
+        }
     }
 
     if (albums != []) {
@@ -43,7 +46,14 @@ const Artist = () => {
         });
     }
 
-    if (albums != []) {
+    if (albums[0] == 'not found in favorites') {
+        return (
+            <div>
+                <h1 className='inline'>{"This artist isn't in your favorites "}</h1>
+                <h3 className='inline text-2xl'>{"(yet)"}</h3>
+            </div>
+        )
+    } else if (albums != []) {
         return (
             <div>
                 <div className='Artist-Info'>
