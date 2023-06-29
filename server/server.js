@@ -381,6 +381,7 @@ app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
         }
     })
         .then((response) => {
+            console.log('getting favorites success', itemType)
             if (response.status === 200) {
                 res.send(response.data)
                 //plan User.songs[]/User.artist[] lastSpotifyUpdate
@@ -392,10 +393,12 @@ app.get('/spotify/favorite/:type', authenticateAccessToken, (req, res) => {
             }
         })
         .catch((error) => {
+            console.log('getting favorites error', itemType)
             if (error.status === 401) {
                 res.send('Bad/Expired Token')
             } else {
-                res.send(error.response)
+                console.log(error)
+                res.status(400).send(['Error'])
             }
         })
 })
