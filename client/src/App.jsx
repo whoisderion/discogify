@@ -14,6 +14,7 @@ import ProtectedRoute from "components/ProtectedRoute";
 import NavigationBar from 'components/NavigationBar';
 import PublicRoute from "components/PublicRoute"
 import Footer from "components/Footer";
+import NotFound from "pages/NotFound";
 
 import 'App.css';
 import { AuthContextProvider } from "context/AuthContext";
@@ -80,6 +81,10 @@ function App() {
               <Route
                 path='/catalog/:artist/:album'
                 element={<ProtectedRoute><Album /></ProtectedRoute>}
+              />
+              <Route
+                path='*'
+                element={<ProtectedRoute><NotFound /></ProtectedRoute>}
               />
             </Routes>
           </div>
