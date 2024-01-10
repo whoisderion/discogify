@@ -5,7 +5,7 @@ import spinner from '../assets/spinner.svg'
 
 const SpotifyContext = createContext()
 
-export const SpotifyContextProvider = ({ children }) => {
+const SpotifyContextProvider = ({ children }) => {
     let viewStart = "favorite_tracks"
     const { user } = UserAuth()
     const [isReady, setIsReady] = useState(false);
@@ -310,6 +310,8 @@ export const SpotifyContextProvider = ({ children }) => {
         </SpotifyContext.Provider>
     )
 }
+
+export default SpotifyContextProvider
 
 export const Spotify = () => {
     return useContext(SpotifyContext)
