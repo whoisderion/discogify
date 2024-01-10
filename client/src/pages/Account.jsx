@@ -65,14 +65,14 @@ const Account = () => {
             <h1>Account Settings</h1>
             <h2>Discogify Settings</h2>
             <h3>User Email:{user && user.email}</h3>
-            <button onClick={handleLogout}>Logout of Discogify</button>
+            <button onClick={handleLogout} className='bg-button text-text dark:bg-dark-button dark:text-dark-text'>Logout of Discogify</button>
 
             <h2>Spotify</h2>
             {profile ?
                 <div>
                     <h3>{profile}</h3>
                 </div>
-                : <button onClick={handleSpotifyLogin}>Login to of Spotify</button>
+                : <button onClick={handleSpotifyLogin} className='bg-button text-text dark:bg-dark-button dark:text-dark-text'>Login to of Spotify</button>
             }
         </div>
     )
