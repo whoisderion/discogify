@@ -25,8 +25,8 @@ const Carousel = ({ title, route, type, setType }) => {
             <div>
                 <h3>{title}</h3>
                 <div className="favorites-toggle">
-                    <button onClick={handleView}>Songs</button>
-                    <button onClick={handleView}>Artists</button>
+                    <button onClick={handleView} className="bg-menu dark:bg-dark-menu">Songs</button>
+                    <button onClick={handleView} className="bg-menu dark:bg-dark-menu">Artists</button>
                 </div>
             </div>
             <Row type={types[view]} rowLength={rowLength} store={types[view].store.data} maxRows={1}></Row>
