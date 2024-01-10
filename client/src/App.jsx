@@ -1,24 +1,12 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useParams, useSearchParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import * as ROUTES from 'data/constants/routes';
 
-import { UserAuth } from "context/AuthContext";
-import Landing from "pages/Landing";
-import Home from 'pages/Home';
-import Signup from "pages/Signup";
-import Signin from "pages/Signin";
-import Account from "pages/Account";
-import Favorites from "pages/Favorites";
-import { Artist, Album } from 'pages/Catalog'
-import ProtectedRoute from "components/ProtectedRoute";
-import NavigationBar from 'components/NavigationBar';
-import PublicRoute from "components/PublicRoute"
-import Footer from "components/Footer";
-import NotFound from "pages/NotFound";
-
-import 'App.css';
-import { AuthContextProvider } from "context/AuthContext";
-import { SpotifyContextProvider } from "context/SpotifyContext";
+import {Landing, Home, Signup, Signin, Account, Favorites, Artist, Album , NotFound} from "pages";
+import {ProtectedRoute, PublicRoute, NavigationBar, Footer} from "components";
+import {AuthContextProvider} from "context/AuthContext";
+import {UserAuth} from "context/AuthContext";
+import SpotifyContextProvider from "context/SpotifyContext"
 
 function App() {
 
